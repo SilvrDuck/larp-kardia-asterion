@@ -1,0 +1,35 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: name-tests-test
+
+- repo: local
+  hooks:
+
+    - id: black
+      name: black
+      entry: env PIPENV_VERBOSITY=-1 bash -c 'cd server && pipenv run black src && pipenv run isort tests'
+      language: system
+      types: [python]
+
+    - id: isort
+      name: isort
+      entry: env PIPENV_VERBOSITY=-1 bash -c 'cd server && pipenv run isort src && pipenv run isort tests'
+      language: system
+      types: [python]
+
+    - id: pylint
+      name: pylint
+      entry: env PIPENV_VERBOSITY=-1 bash -c 'cd server && pipenv run pylint src && pipenv run pylint tests'
+      language: system
+      types: [python]
+
+    - id: mypy
+      name: mypy
+      entry: env PIPENV_VERBOSITY=-1 bash -c 'cd server && pipenv run mypy --disallow-untyped-defs --disallow-incomplete-defs src && pipenv run mypy --disallow-untyped-defs --disallow-incomplete-defs tests'
+      language: system
+      types: [python]
