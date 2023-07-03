@@ -1,5 +1,3 @@
-
-
-class SonarService():
-
-    def create_battle
+class SonarService:
+    def create_battle():
+        pass

@@ -1,12 +1,10 @@
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import List, Union
+from typing import List, Self, Union
 
-
-class Owner(Enum):
-    Players = auto()
-    NPCs = auto()
+from serenity.common.definitions import Owner
+from serenity.sonar.exceptions import ShipDestroyed
 
 
 @dataclass(frozen=True)
@@ -24,7 +22,7 @@ class Ship:
         if self.hp <= 0:
             raise ShipDestroyed()
 
-    def apply_damage(self, damage: int) -> Ship:
+    def apply_damage(self, damage: int) -> Self:
         return Ship(self.name, self.hp - damage, self.owner)
 
 
@@ -39,7 +37,7 @@ class Launchable:
 class Mine(Launchable):
     uid: str = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.uid = str(uuid.uuid4())
 
 

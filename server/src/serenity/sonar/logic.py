@@ -1,13 +1,17 @@
+from dataclasses import dataclass
 from enum import Enum, auto
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
-from serenity.sonar.actors import GameActor
+from serenity.sonar.actors import Asteroid, GameActor, Launchable, Mine, Owner, Ship, Torpedo, Trail
+from serenity.sonar.exceptions import CannotBeAddedToCell
+from serenity.sonar.game_config import GameConfig
 
 
 @dataclass(frozen=True)
 class GridPosition:
     x: int
     y: int
+
 
 class Cell:
     def __init__(self):
@@ -23,8 +27,13 @@ class Cell:
                 return actor
         raise None
 
-    def add(self, actor: GameActor):
+    def find_mine(self, mine_uid: str) -> Optional[Mine]:
+        for actor in self._content:
+            if isinstance(actor, Mine) and actor.uid == mine_uid:
+                return actor
+        return None
 
+    def add(self, actor: GameActor):
         if self._has_asteroid:
             raise CannotBeAddedToCell()
 
@@ -51,11 +60,13 @@ class Cell:
             except AttributeError:
                 pass
 
+
 class Direction(Enum):
     North = auto()
     South = auto()
     East = auto()
     West = auto()
+
 
 @dataclass(frozen=True)
 class CellDistance:
@@ -64,23 +75,25 @@ class CellDistance:
 
 
 class Map:
-
-    def __init__(self, width: int, height: int,
-                 player_ship: Ship,
-                    npc_ship: Ship,
-                 player_ship_positions: List[GridPosition],
-                    npc_ship_positions: List[GridPosition],
-                 asteroid_positions: List[GridPosition],
-                 game_config: GameConfig
-                 ):
+    def __init__(
+        self,
+        width: int,
+        height: int,
+        player_ship: Ship,
+        npc_ship: Ship,
+        player_ship_position: GridPosition,
+        npc_ship_position: GridPosition,
+        asteroid_positions: List[GridPosition],
+        game_config: GameConfig,
+    ):
         self.game_config = game_config
 
         self.width = width
         self.height = height
         self._grid = [[Cell() for _ in range(width)] for _ in range(height)]
         self._ship_positions = {
-            Owner.Players: player_ship_positions,
-            Owner.NPCs: npc_ship_positions,
+            Owner.Players: player_ship_position,
+            Owner.NPCs: npc_ship_position,
         }
 
         for owner, ship in [(Owner.Players, player_ship), (Owner.NPCs, npc_ship)]:
@@ -91,10 +104,7 @@ class Map:
         for asteroid in asteroid_positions:
             self._grid[asteroid.y][asteroid.x] = Asteroid()
 
-
-
     def move_ship(self, owner: Owner, move_direction: Direction) -> None:
-
         ship_position = self._ship_positions[owner]
         current_cell = self._grid[ship_position.y][ship_position.x]
         ship = current_cell.ship_for(owner)
@@ -140,8 +150,7 @@ class Map:
         except CannotBeAddedToCell:
             return False
 
-    def possible_object_launch(self, launchable:Launchable ) -> List[GridPosition]:
-
+    def possible_object_launch(self, launchable: Launchable) -> List[GridPosition]:
         ship_position = self._ship_positions[launchable.owner]
 
         in_radius = self._cells_in_radius(ship_position, launchable.reach)
@@ -154,7 +163,6 @@ class Map:
         return possible_positions
 
     def launch_torpedo(self, torpedo: Torpedo, target: GridPosition) -> None:
-
         assert self.possible_object_launch(torpedo).contains(target)
         self._apply_damage_with_falloff(torpedo, target)
 
@@ -163,17 +171,15 @@ class Map:
         self._grid[position.y][position.x].add(mine)
         return mine.uid
 
-
     def _find_mine(self, mine_uid: str) -> Tuple[Mine, GridPosition]:
         for row in self._grid:
             for cell in row:
-                for actor in cell.content:
-                    if isinstance(actor, Mine) and actor.uid == mine_uid:
-                        return actor, cell.position
+                mine = cell.find_mine(mine_uid)
+                if mine is not None:
+                    return mine, cell.position
         raise ValueError(f"Mine {mine_uid} not found")
 
-    def _apply_damage_with_falloff(self,launchable: Launchable, target: GridPosition) -> None:
-
+    def _apply_damage_with_falloff(self, launchable: Launchable, target: GridPosition) -> None:
         damaged_cells = self._cells_in_radius(target, launchable.radius)
         for cell_distance in damaged_cells:
             damage = launchable.damage - cell_distance.distance
@@ -183,9 +189,7 @@ class Map:
         mine, mine_position = self._find_mine(mine_uid)
         self._apply_damage_with_falloff(mine, mine_position)
 
-
     def _cells_in_radius(self, position: GridPosition, reach: int) -> List[CellDistance]:
-
         cell_distances = []
         for y in range(position.y - reach, position.y + reach + 1):
             for x in range(position.x - reach, position.x + reach + 1):

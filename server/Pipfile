@@ -6,9 +6,10 @@ name = "pypi"
 [packages]
 serenity = {editable = true, path = "."}
 fastapi = "*"
-mypy = "*"
 
 [dev-packages]
+pylint = "*"
+mypy = "*"
 
 [requires]
 python_version = "3.11"
