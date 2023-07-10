@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 *$py.class
+.vscode/settings.json
+server/test.ipynb
 
 # C extensions
 *.so

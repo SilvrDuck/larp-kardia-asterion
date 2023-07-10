@@ -6,6 +6,12 @@ name = "pypi"
 [packages]
 serenity = {editable = true, path = "."}
 fastapi = "*"
+orjson = "*"
+pydantic-settings = "*"
+uvicorn = "*"
+websockets = "*"
+fastapi-websocket-pubsub = "*"
+redis = "*"
 
 [dev-packages]
 pylint = "*"
