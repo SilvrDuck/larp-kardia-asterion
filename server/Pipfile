@@ -12,10 +12,12 @@ uvicorn = "*"
 websockets = "*"
 fastapi-websocket-pubsub = "*"
 redis = "*"
+networkx = "*"
 
 [dev-packages]
 pylint = "*"
 mypy = "*"
+matplotlib = "*"
 
 [requires]
 python_version = "3.11"

@@ -1,0 +1,25 @@
+{
+    "nodes": [
+        {
+            "id": "1",
+            "name": "Earth",
+            "description": "The planet we live on",
+            "min_stop_minutes": 12,
+            "max_stop_minutes": 24
+        },
+        {
+            "id": "2",
+            "name": "Mars",
+            "description": "The planet we want to live on",
+            "min_stop_minutes": 10,
+            "max_stop_minutes": 20
+        }
+    ],
+    "links": [
+        {
+            "source": "1",
+            "target": "2",
+            "travel_minutes": 1
+        }
+    ]
+}

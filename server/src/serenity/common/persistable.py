@@ -24,5 +24,18 @@ class Persistable(ABC):
 
     @classmethod
     @abstractmethod
-    def from_dict(cls, data: dict) -> Self:
+    def _prepare_from_dict(cls, data: dict) -> dict:
+        """Class that deserialize underlying data for this class."""
         pass
+
+    @classmethod
+    def from_dict(cls, data: dict) -> Self:
+        prepared_data = cls._prepare_from_dict(data)
+
+        class Blank:
+            """Blank class for initialising from existing data."""
+
+        obj = Blank()
+        obj.__dict__.update(prepared_data)
+        obj.__class__ = cls
+        return obj

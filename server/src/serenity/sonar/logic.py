@@ -1,10 +1,19 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from enum import Enum, auto
-from typing import List, Optional, Tuple
+from typing import List, Optional, Self, Tuple
+from serenity.common.persistable import Persistable
 
-from serenity.sonar.actors import Asteroid, GameActor, Launchable, Mine, Owner, Ship, Torpedo, Trail
+from serenity.sonar.actors import (
+    Asteroid,
+    GameActor,
+    Launchable,
+    Mine,
+    Owner,
+    Ship,
+    Torpedo,
+    Trail,
+)
 from serenity.sonar.exceptions import CannotBeAddedToCell
-from serenity.sonar.game_config import GameConfig
 
 
 @dataclass(frozen=True)
@@ -13,13 +22,31 @@ class GridPosition:
     y: int
 
 
-class Cell:
+class Cell(Persistable):
     def __init__(self):
         self._content = set()
         self._has_asteroid = False
 
+    def to_dict(self) -> dict:
+        return {
+            "_content": [asdict(actor) for actor in self._content],
+            "_has_asteroid": self._has_asteroid,
+        }
+
+    @classmethod
+    def _prepare_from_dict(cls, data: dict) -> dict:
+        return {
+            "_content": [GameActor.from_dict(actor) for actor in data["_content"]],
+            "_has_asteroid": data["_has_asteroid"],
+        }
+
     def _has_trail_for(self, owner: Owner) -> bool:
-        return any(isinstance(actor, Trail) and actor.owner == owner for actor in self._content)
+        return any(
+            isinstance(actor, Trail) and actor.owner == owner for actor in self._content
+        )
+
+    def has_asteroid(self) -> bool:
+        return self._has_asteroid
 
     def ship_for(self, owner: Owner) -> Optional[Ship]:
         for actor in self._content:
@@ -74,7 +101,7 @@ class CellDistance:
     distance: int
 
 
-class Map:
+class Map(Persistable):
     def __init__(
         self,
         width: int,
@@ -84,10 +111,7 @@ class Map:
         player_ship_position: GridPosition,
         npc_ship_position: GridPosition,
         asteroid_positions: List[GridPosition],
-        game_config: GameConfig,
     ):
-        self.game_config = game_config
-
         self.width = width
         self.height = height
         self._grid = [[Cell() for _ in range(width)] for _ in range(height)]
@@ -103,6 +127,42 @@ class Map:
 
         for asteroid in asteroid_positions:
             self._grid[asteroid.y][asteroid.x] = Asteroid()
+
+    def to_dict(self) -> dict:
+        return {
+            "width": self.width,
+            "height": self.height,
+            "_grid": [[cell.to_dict() for cell in row] for row in self._grid],
+            "_ship_positions": {
+                owner: asdict(position) for owner, position in self._ship_positions
+            },
+        }
+
+    @classmethod
+    def _prepare_from_dict(cls, data: dict) -> dict:
+        return {
+            "width": data["width"],
+            "height": data["height"],
+            "_grid": [[Cell.from_dict(cell) for cell in row] for row in data["_grid"]],
+            "_ship_positions": {
+                Owner(owner): GridPosition.from_dict(position)
+                for owner, position in data["_ship_positions"]
+            },
+        }
+
+    def get_asteroid_positions(self) -> List[GridPosition]:
+        # search asteroid positions
+        asteroid_positions = []
+        for y in range(self.height):
+            for x in range(self.width):
+                if isinstance(self._grid[y][x], Asteroid):
+                    asteroid_positions.append(GridPosition(x, y))
+        return asteroid_positions
+
+    def ship_for(self, owner: Owner) -> Ship:
+        ship_position = self._ship_positions[owner]
+        ship_cell = self._grid[ship_position.y][ship_position.x]
+        return ship_cell.ship_for(owner)
 
     def move_ship(self, owner: Owner, move_direction: Direction) -> None:
         ship_position = self._ship_positions[owner]
@@ -128,13 +188,21 @@ class Map:
         surrounding_cells = {}
 
         if ship_position.y > 0:
-            surrounding_cells[Direction.North] = self._grid[ship_position.y - 1][ship_position.x]
+            surrounding_cells[Direction.North] = self._grid[ship_position.y - 1][
+                ship_position.x
+            ]
         if ship_position.y < self.height - 1:
-            surrounding_cells[Direction.South] = self._grid[ship_position.y + 1][ship_position.x]
+            surrounding_cells[Direction.South] = self._grid[ship_position.y + 1][
+                ship_position.x
+            ]
         if ship_position.x > 0:
-            surrounding_cells[Direction.West] = self._grid[ship_position.y][ship_position.x - 1]
+            surrounding_cells[Direction.West] = self._grid[ship_position.y][
+                ship_position.x - 1
+            ]
         if ship_position.x < self.width - 1:
-            surrounding_cells[Direction.East] = self._grid[ship_position.y][ship_position.x + 1]
+            surrounding_cells[Direction.East] = self._grid[ship_position.y][
+                ship_position.x + 1
+            ]
 
         available_moves = []
 
@@ -179,7 +247,9 @@ class Map:
                     return mine, cell.position
         raise ValueError(f"Mine {mine_uid} not found")
 
-    def _apply_damage_with_falloff(self, launchable: Launchable, target: GridPosition) -> None:
+    def _apply_damage_with_falloff(
+        self, launchable: Launchable, target: GridPosition
+    ) -> None:
         damaged_cells = self._cells_in_radius(target, launchable.radius)
         for cell_distance in damaged_cells:
             damage = launchable.damage - cell_distance.distance
@@ -189,7 +259,9 @@ class Map:
         mine, mine_position = self._find_mine(mine_uid)
         self._apply_damage_with_falloff(mine, mine_position)
 
-    def _cells_in_radius(self, position: GridPosition, reach: int) -> List[CellDistance]:
+    def _cells_in_radius(
+        self, position: GridPosition, reach: int
+    ) -> List[CellDistance]:
         cell_distances = []
         for y in range(position.y - reach, position.y + reach + 1):
             for x in range(position.x - reach, position.x + reach + 1):

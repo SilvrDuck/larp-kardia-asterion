@@ -1,0 +1,2 @@
+class CannotTakeOffException(Exception):
+    pass
