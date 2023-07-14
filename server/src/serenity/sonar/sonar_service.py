@@ -40,7 +40,7 @@ class SonarService(Persistable):
             await pubsub.publish("chat:c", str(self.grid["lol"]))
 
     def from_dict(self, d: dict):
-        pass
+        raise NotImplementedError()
 
     def to_dict(self) -> dict:
-        pass
+        raise NotImplementedError()

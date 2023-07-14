@@ -18,6 +18,7 @@ networkx = "*"
 pylint = "*"
 mypy = "*"
 matplotlib = "*"
+types-redis = "*"
 
 [requires]
 python_version = "3.11"

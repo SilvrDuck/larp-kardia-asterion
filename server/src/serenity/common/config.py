@@ -1,8 +1,14 @@
 from pathlib import Path
+
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    # ---------------------------------------------------
+    # Startup parameters
+    # ---------------------------------------------------
+    restore_persisted_state: bool = False
+
     # ---------------------------------------------------
     # Redis
     # ---------------------------------------------------
@@ -12,7 +18,7 @@ class Settings(BaseSettings):
     # ---------------------------------------------------
     # Travel
     # ---------------------------------------------------
-    travel_tick_seconds: float = 1
+    travel_tick_seconds: float = 0.3
 
     # ---------------------------------------------------
     # Paths
@@ -21,6 +27,7 @@ class Settings(BaseSettings):
     planetary_config_path: Path = package_dir / "defaults/planet_graph.json"
 
     class Config:
+        env_prefix = "serenity_"
         env_file = ".env"
         env_file_encoding = "utf-8"
 

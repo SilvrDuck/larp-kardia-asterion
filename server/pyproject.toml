@@ -31,6 +31,8 @@ fixme,
 too-few-public-methods,
 missing-module-docstring,
 duplicate-code,
+missing-class-docstring,
+missing-function-docstring,
 """
 extension-pkg-whitelist = "pydantic"
 

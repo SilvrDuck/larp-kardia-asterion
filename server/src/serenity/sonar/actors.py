@@ -1,6 +1,5 @@
 import uuid
 from dataclasses import dataclass, field
-from enum import Enum, auto
 from typing import List, Self, Union
 
 from serenity.common.definitions import Owner

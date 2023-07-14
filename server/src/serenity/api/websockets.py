@@ -1,6 +1,8 @@
 from fastapi import WebSocket
 
 
+# noqa
+# mypy: ignore-errors
 class ConnectionManager:
     def __init__(self):
         self.active_connections: list[WebSocket] = []

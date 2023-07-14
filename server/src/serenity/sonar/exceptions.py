@@ -1,3 +1,6 @@
+from serenity.sonar.actors import Ship
+
+
 class ShipDestroyed(Exception):
     """Raised when a ship is destroyed."""
 

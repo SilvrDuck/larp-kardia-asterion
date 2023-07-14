@@ -5,14 +5,14 @@ from serenity.common.io import RedisClient
 
 
 class Persistable(ABC):
-    client = RedisClient()
+    redis = RedisClient()
 
     def persist(self) -> None:
-        self.client.set(self._get_save_key, self.to_dict())
+        self.redis.set(self._get_save_key, self.to_dict())
 
     @classmethod
-    def load(cls) -> Self:
-        return cls.from_dict(cls.client.get(cls._get_save_key()))
+    def restore(cls) -> Self:
+        return cls.from_dict(cls.redis.get(cls._get_save_key()))
 
     @classmethod
     def _get_save_key(cls) -> str:
@@ -20,16 +20,16 @@ class Persistable(ABC):
 
     @abstractmethod
     def to_dict(self) -> dict:
-        pass
+        """Class that serialize underlying data for this class."""
 
     @classmethod
     @abstractmethod
     def _prepare_from_dict(cls, data: dict) -> dict:
         """Class that deserialize underlying data for this class."""
-        pass
 
     @classmethod
-    def from_dict(cls, data: dict) -> Self:
+    def from_dict(cls, data: dict) -> Self:  # type: ignore
+        #  type: ignore
         prepared_data = cls._prepare_from_dict(data)
 
         class Blank:

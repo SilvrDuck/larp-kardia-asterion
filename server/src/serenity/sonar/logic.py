@@ -1,8 +1,8 @@
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from enum import Enum, auto
 from typing import List, Optional, Self, Tuple
-from serenity.common.persistable import Persistable
 
+from serenity.common.persistable import Persistable
 from serenity.sonar.actors import (
     Asteroid,
     GameActor,
@@ -116,11 +116,11 @@ class Map(Persistable):
         self.height = height
         self._grid = [[Cell() for _ in range(width)] for _ in range(height)]
         self._ship_positions = {
-            Owner.Players: player_ship_position,
-            Owner.NPCs: npc_ship_position,
+            Owner.PLAYERS: player_ship_position,
+            Owner.NPCS: npc_ship_position,
         }
 
-        for owner, ship in [(Owner.Players, player_ship), (Owner.NPCs, npc_ship)]:
+        for owner, ship in [(Owner.PLAYERS, player_ship), (Owner.NPCS, npc_ship)]:
             ship_position = self._ship_positions[owner]
             for ship_position in ship_position:
                 self._grid[ship_position.y][ship_position.x].add(ship)
