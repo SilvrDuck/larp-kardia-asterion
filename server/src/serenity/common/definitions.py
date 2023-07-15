@@ -10,7 +10,7 @@ Jsonable = None | int | str | bool | List[Any] | Dict[str, Any] | datetime | Enu
 
 
 class RedisChannel(Enum):
-    TRAVEL = auto()
+    DASHBOARDS = "dashboards"
 
 
 class Owner(Enum):

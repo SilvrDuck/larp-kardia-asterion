@@ -127,9 +127,7 @@ class TravelService(Persistable):
 
     def _get_random_destination(self) -> str:
         assert isinstance(self._current_step_id, str), "current step should be a str"
-        return random.choice(
-            self._planet_graph.reachable_planets(self._current_step_id)
-        )
+        return random.choice(list(self._planet_graph.reachable_planets(self._current_step_id)))
 
     async def _update_travel(self) -> None:
         if self._step_elapsed_minutes() >= self._step_max_minutes():
@@ -144,9 +142,7 @@ class TravelService(Persistable):
     async def _take_off(self, target_planet_id: str) -> None:
         self._set_state(State.Travelling)
         self._step_start = datetime.utcnow()
-        assert isinstance(
-            self._current_step_id, str
-        ), "current step should be a single element during take off"
+        assert isinstance(self._current_step_id, str), "current step should be a single element during take off"
         self._current_step_id = (self._current_step_id, target_planet_id)
 
         await self._emit_new_state()
@@ -170,25 +166,18 @@ class TravelService(Persistable):
         return graph_element["max_step_minutes"]
 
     def _game_state(self) -> GameState:
-        # debug info
-
-        return {
-            "current_step_id": self._current_step_id,
-            "is_in_battle": False,
-            "step_completion": self._current_step_completion(),
-            "state": self._state,
-            "step_start": self._step_start,
-            "step_elapsed_minutes": self._step_elapsed_minutes(),
-            "planet_graph": self._planet_graph.to_dict(),
-        }
         return GameState(
             current_step_id=self._current_step_id,
             is_in_battle=False,
             step_completion=self._current_step_completion(),
         )
 
+    async def emit_game_state(self) -> GameState:
+        async with self.redis.get_lock(__file__):
+            await self._emit_new_state()
+
     async def _emit_new_state(self) -> None:
-        await self.redis.publish(self._game_state(), RedisChannel.TRAVEL)
+        await self.redis.publish(self._game_state(), RedisChannel.DASHBOARDS)
 
     def _current_step_completion(self) -> float:
         return self._step_elapsed_minutes() / self._step_max_minutes()

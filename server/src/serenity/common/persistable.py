@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Self
 
-from serenity.common.io import RedisClient
+from serenity.common.redis_client import RedisClient
 
 
 class Persistable(ABC):

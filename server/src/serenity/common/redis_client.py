@@ -35,9 +35,9 @@ class RedisClient:
     async def _(self, message: BaseModel, channel: RedisChannel) -> None:
         await self.publish(message.model_dump(), channel)
 
-    async def subscribtion_iterator(self, channel: str) -> Optional[Jsonable]:
+    async def subscribtion_iterator(self, channel: RedisChannel) -> Optional[Jsonable]:
         async with self._client.pubsub() as pubsub:
-            await pubsub.subscribe(channel)
+            await pubsub.subscribe(channel.name)
             while True:
                 message = await pubsub.get_message(ignore_subscribe_messages=True)
                 if message is not None:
