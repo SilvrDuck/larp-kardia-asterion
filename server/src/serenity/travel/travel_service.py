@@ -9,6 +9,7 @@ import orjson
 from serenity.common.config import settings
 from serenity.common.definitions import GameState, RedisChannel
 from serenity.common.persistable import Persistable
+from serenity.travel.nx_to_flow_converter import NxToFlowGraphConverter
 from serenity.travel.exceptions import CannotTakeOffException
 from serenity.travel.planet_graph import PlanetaryConfig, PlanetGraph
 
@@ -137,7 +138,12 @@ class TravelService(Persistable):
         self._set_state(State.Landed)
         self._step_start = datetime.utcnow()
         self._current_step_id = self._current_step_id[1]  # target of edge
+        self._set_visited(self._current_step_id)
+
         await self._emit_new_state()
+
+    def _set_visited(self, node_id: str) -> None:
+        self._planet_graph.nodes[node_id]["visited"] = True
 
     async def _take_off(self, target_planet_id: str) -> None:
         self._set_state(State.Travelling)
@@ -170,6 +176,7 @@ class TravelService(Persistable):
             current_step_id=self._current_step_id,
             is_in_battle=False,
             step_completion=self._current_step_completion(),
+            react_flow_graph=self._current_graph_flow_state(),
         )
 
     async def emit_game_state(self) -> GameState:
@@ -200,3 +207,6 @@ class TravelService(Persistable):
             "step_start": new_start,
             "current_step_id": data["current_step_id"],
         }
+
+    def _current_graph_flow_state(self) -> dict:
+        return NxToFlowGraphConverter(self._planet_graph).node_link_to_flow(self._current_step_id)

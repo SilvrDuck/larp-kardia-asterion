@@ -8,6 +8,8 @@ from pydantic import BaseModel, Field
 
 Jsonable = None | int | str | bool | List[Any] | Dict[str, Any] | datetime | Enum
 
+SHUTDOWN_SIGNAL = "__shutdown__"
+
 
 class RedisChannel(Enum):
     DASHBOARDS = "dashboards"
@@ -27,6 +29,7 @@ class GameState(BaseModel):
     current_step_id: str | Tuple[str, str]
     is_in_battle: bool
     step_completion: float = Field(..., ge=0.0, le=1.0)
+    react_flow_graph: dict
 
 
 class Step(BaseModel):
@@ -36,8 +39,11 @@ class Step(BaseModel):
 class PlanetNode(Step):
     id: str
     name: str
+    visited: bool
     description: str
     min_step_minutes: float = Field(..., ge=0)
+    position_x: float
+    position_y: float
 
 
 class PlanetLink(Step):

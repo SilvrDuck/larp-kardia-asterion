@@ -20,18 +20,24 @@ class WebsocketsBroadcaster:
         self._active_connections.add(websocket)
 
     def disconnect(self, websocket: WebSocket):
-        self._active_connections.remove(websocket)
+        try:
+            self._active_connections.remove(websocket)
+        except KeyError:
+            logging.warning(f"Websocket {websocket} not found in active connections.")
+
+    async def disconnect_all(self):
+        for connection in self._active_connections:
+            await connection.close(code=1000)
 
     async def broadcast(self, message: str):
         for connection in self._active_connections:
-            print("sending message", message, "to", connection)
-            print(self._active_connections)
             await connection.send_json(message)
 
     async def broadcast_loop(self):
         subscription = self._redis.subscribtion_iterator(self._target_channel)
-        while True:
-            message = await anext(subscription)
+
+        async for message in subscription:
+            logging.debug(f"Broadcasting message: {message}")
             await self.broadcast(message)
 
     async def receive_loop(self, websocket: WebSocket):
@@ -47,6 +53,7 @@ class WebsocketsBroadcaster:
 
         try:
             target_channel = RedisChannel(message["channel"])
-            await self._redis.publish(target_channel, message)
+            logging.debug(f"Publishing message: {message} to channel: {target_channel}")
+            await self._redis.publish(message, target_channel)
         except (KeyError, ValueError) as err:
             logging.error(f"Invalid message received: {message}, reason: {err}.")

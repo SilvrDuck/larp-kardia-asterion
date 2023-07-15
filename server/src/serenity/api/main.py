@@ -11,7 +11,7 @@ from serenity.common.definitions import GameState, RedisChannel
 from serenity.common.redis_client import RedisClient
 from serenity.travel.travel_service import TravelService
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger(__name__)
 
 
@@ -21,7 +21,6 @@ app.add_middleware(
     allow_origins=settings.cors_origins,
 )
 
-RedisClient().release_all_locks()
 dashboard_broadcaster = WebsocketsBroadcaster(RedisChannel.DASHBOARDS)
 
 if settings.restore_persisted_state:
@@ -39,8 +38,15 @@ async def dashboard(websocket: WebSocket) -> None:
 
 @app.on_event("startup")
 async def startup_event() -> None:
+    RedisClient().release_all_locks()
     asyncio.create_task(travel_service.run())
     asyncio.create_task(dashboard_broadcaster.broadcast_loop())
+
+
+@app.on_event("shutdown")
+async def shutdown_event() -> None:
+    await dashboard_broadcaster.disconnect_all()
+    await RedisClient().terminate_all_channels()
 
 
 @app.get("/game_state")

@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 from pydantic_settings import BaseSettings
@@ -8,6 +9,7 @@ class Settings(BaseSettings):
     # Startup parameters
     # ---------------------------------------------------
     restore_persisted_state: bool = False
+    log_level: int = logging.DEBUG
 
     # ---------------------------------------------------
     # CORS

@@ -8,7 +8,7 @@ from redis.asyncio import StrictRedis
 from redis.asyncio.lock import Lock
 
 from serenity.common.config import settings
-from serenity.common.definitions import Jsonable, RedisChannel
+from serenity.common.definitions import SHUTDOWN_SIGNAL, Jsonable, RedisChannel
 
 
 class RedisClient:
@@ -29,7 +29,7 @@ class RedisClient:
 
     @singledispatchmethod
     async def publish(self, message: Jsonable, channel: RedisChannel) -> None:
-        await self._client.publish(channel.name, orjson.dumps(message))
+        await self._client.publish(channel.value, orjson.dumps(message))
 
     @publish.register
     async def _(self, message: BaseModel, channel: RedisChannel) -> None:
@@ -37,11 +37,16 @@ class RedisClient:
 
     async def subscribtion_iterator(self, channel: RedisChannel) -> Optional[Jsonable]:
         async with self._client.pubsub() as pubsub:
-            await pubsub.subscribe(channel.name)
+            await pubsub.subscribe(channel.value)
             while True:
                 message = await pubsub.get_message(ignore_subscribe_messages=True)
                 if message is not None:
-                    yield self._treat_subscription_message(message)
+                    message = self._treat_subscription_message(message)
+
+                    if message == SHUTDOWN_SIGNAL:
+                        return
+
+                    yield message
 
     def _treat_subscription_message(self, message: dict) -> Optional[Jsonable]:
         data = message["data"]
@@ -55,3 +60,7 @@ class RedisClient:
 
     def release_all_locks(self) -> None:
         asyncio.create_task(self._client.delete("__lock__*"))
+
+    async def terminate_all_channels(self) -> None:
+        for channel in RedisChannel:
+            await self.publish(SHUTDOWN_SIGNAL, channel)

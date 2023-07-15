@@ -12,4 +12,4 @@ class PlanetGraph(nx.DiGraph):
         return nx.node_link_data(self)
 
     def reachable_planets(self, source_id: str) -> set[str]:
-        return set(nx.descendants(self, source_id))
+        return self.successors(source_id)
