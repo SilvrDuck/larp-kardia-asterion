@@ -9,8 +9,8 @@ import orjson
 from serenity.common.config import settings
 from serenity.common.definitions import GameState, RedisChannel
 from serenity.common.persistable import Persistable
-from serenity.travel.nx_to_flow_converter import NxToFlowGraphConverter
 from serenity.travel.exceptions import CannotTakeOffException
+from serenity.travel.nx_to_flow_converter import NxToFlowGraphConverter
 from serenity.travel.planet_graph import PlanetaryConfig, PlanetGraph
 
 

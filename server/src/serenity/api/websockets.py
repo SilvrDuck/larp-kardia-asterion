@@ -10,28 +10,34 @@ from serenity.common.redis_client import RedisClient
 
 
 class WebsocketsBroadcaster:
-    def __init__(self, target_channel: RedisChannel):
+    def __init__(self, target_channel: RedisChannel) -> None:
         self._active_connections: set[WebSocket] = set()
         self._redis = RedisClient()
         self._target_channel = target_channel
 
-    async def connect(self, websocket: WebSocket):
+    async def connect(self, websocket: WebSocket) -> None:
         await websocket.accept()
         self._active_connections.add(websocket)
 
-    def disconnect(self, websocket: WebSocket):
+    async def disconnect(self, websocket: WebSocket) -> None:
         try:
+            await websocket.close(code=1001)
             self._active_connections.remove(websocket)
+        except RuntimeError:
+            logging.warning(f"Websocket {websocket} already closed.")
         except KeyError:
             logging.warning(f"Websocket {websocket} not found in active connections.")
 
-    async def disconnect_all(self):
-        for connection in self._active_connections:
-            await connection.close(code=1000)
+    async def disconnect_all(self) -> None:
+        await asyncio.gather(*[self.disconnect(connection) for connection in self._active_connections])
 
     async def broadcast(self, message: str):
         for connection in self._active_connections:
-            await connection.send_json(message)
+            try:
+                await connection.send_json(message)
+            except RuntimeError:
+                logging.warning(f"Trying to broadcast to {connection} already closed.")
+                self._active_connections.remove(connection)
 
     async def broadcast_loop(self):
         subscription = self._redis.subscribtion_iterator(self._target_channel)

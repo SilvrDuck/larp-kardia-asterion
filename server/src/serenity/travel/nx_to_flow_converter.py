@@ -1,4 +1,5 @@
 from typing import List, Tuple
+
 from serenity.common.definitions import PlanetaryConfig
 from serenity.travel.planet_graph import PlanetGraph
 
@@ -25,9 +26,18 @@ class NxToFlowGraphConverter:
                 "source": link["source"],
                 "target": link["target"],
                 "animated": current_id == (link["source"], link["target"]),
+                "hidden": not self._both_nodes_visible(link, current_id),
             }
             for link in self._node_link_data["links"]
         ]
+
+    def _both_nodes_visible(self, link: dict, current_id: str) -> bool:
+        # get source node data
+        source_data = self._graph.nodes[link["source"]].copy()
+        target_data = self._graph.nodes[link["target"]].copy()
+        source = self._visible({**source_data, "id": link["source"]}, current_id)
+        target = self._visible({**target_data, "id": link["target"]}, current_id)
+        return source and target
 
     def _get_node_type(self, node_id: str) -> str:
         if self._graph.in_degree(node_id) == 0:

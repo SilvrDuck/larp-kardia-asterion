@@ -8,7 +8,7 @@ import {
 } from "react-router-dom";
 import Captain from './pages/Captain.tsx'
 import { ChakraProvider } from '@chakra-ui/react'
-import { GameContext } from './gameContext.tsx';
+import { GameContext } from './lib/gameContext.tsx';
 
 
 const router = createBrowserRouter([

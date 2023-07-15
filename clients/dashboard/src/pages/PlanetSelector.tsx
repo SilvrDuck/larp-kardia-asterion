@@ -1,20 +1,26 @@
 import { Flex } from "@chakra-ui/react";
-import { Background, Controls, MiniMap, ReactFlow, useEdgesState, useNodesState } from "reactflow";
+import { useContext, useEffect } from "react";
+import { Background, Controls, Edge, MiniMap, ReactFlow, useEdgesState, useNodesState } from "reactflow";
 import "reactflow/dist/style.css";
+import { GameContext } from "../lib/gameContext";
 
 export function PlanetSelector() {
 
-    const { gameState } = useServerContext();
+    const { react_flow_graph, current_step_id } = useContext(GameContext)
+    console.log("from planet" + react_flow_graph.toString())
 
-    const [nodes, setNodes, onNodesChange] = useNodesState([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+    const [nodes, setNodes, onNodesChange] = useNodesState(react_flow_graph.nodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(react_flow_graph.edges);
 
-    setEdges(gameState.react_flow_graph.edges);
-    setNodes(gameState.react_flow_graph.nodes);
+    useEffect(() => {
+        setNodes(react_flow_graph.nodes)
+        setEdges(react_flow_graph.edges)
+    }, [react_flow_graph])
 
     // should take full size of container
     return (
         <Flex h="80vh" w="80vw">
+            <p>{current_step_id}</p>
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
