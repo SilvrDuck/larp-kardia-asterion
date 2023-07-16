@@ -21,9 +21,7 @@ class SonarService(Persistable):
             hp=settings.serenity_hp,
             owner=Owner.PLAYER,
         )
-        self._asteroid_positions = self._get_asteroid_positions(
-            settings.sonar_map_file_name
-        )
+        self._asteroid_positions = self._get_asteroid_positions(settings.sonar_map_file_name)
 
     async def start_battle(self, npc_ship: ShipModel) -> None:
         async with self.redis.get_lock(__file__):
@@ -100,10 +98,7 @@ class SonarService(Persistable):
         with open(settings.asteroid_map_dir / map_file_name) as file:
             map_data = orjson.loads(file.read())
 
-        return [
-            GridPosition(x=asteroid["x"], y=asteroid["y"])
-            for asteroid in map_data["asteroids"]
-        ]
+        return [GridPosition(x=asteroid["x"], y=asteroid["y"]) for asteroid in map_data["asteroids"]]
 
     async def end_battle(self) -> None:
         async with self.redis.get_lock(__file__):

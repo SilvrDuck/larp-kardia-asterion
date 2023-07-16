@@ -14,7 +14,7 @@ class ShipState(str, Enum):
 
 class TravelState(BaseModel):
     ship_state: ShipState
-    planet_graph: PlanetaryConfig
+    planetary_config: PlanetaryConfig
     step_start: datetime
     pause_start: datetime
     step_duration_minutes: float

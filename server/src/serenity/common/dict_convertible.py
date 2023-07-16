@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from serenity.common.definitions import Jsonable
 
 
-class HasDictRepr(ABC):
+class DictConvertible(ABC):
     @abstractmethod
     def to_dict(self) -> Jsonable:
         pass

@@ -50,9 +50,7 @@ class RedisClient:
                     message = RedisMessage(**orjson.loads(message["data"]))
 
                     match message:
-                        case RedisMessage(
-                            type=MessageType.SYSTEM, data=RedisSignal.SHUTDOWN
-                        ):
+                        case RedisMessage(type=MessageType.SYSTEM, data=RedisSignal.SHUTDOWN):
                             return
                         case _:
                             yield message

@@ -41,9 +41,11 @@ class TravelService(Service[TravelState, TravelConfig]):
         config = TravelConfig(travel_tick_seconds=settings.travel_tick_seconds)
         return cls(state, config)
 
+    raise NotImplementedError("Need to reimplement to and from state and config, as well as removeing old GameState object")ß☮
+
     def _update_state(self, state: TravelState) -> None:
         self._ship_state = state.ship_state
-        self._planet_graph = state.planet_graph
+        self._planet_graph = PlanetGraph(state.planet_graph)
         self._step_start = state.step_start
         self._pause_start = state.pause_start
         self._current_step_id = state.current_step_id
@@ -51,7 +53,7 @@ class TravelService(Service[TravelState, TravelConfig]):
     def _update_config(self, config: TravelConfig) -> None:
         self._travel_tick_seconds = config.travel_tick_seconds
 
-    async def start(self) -> None:
+    async def _start(self) -> None:
         async with asyncio.TaskGroup() as tg:
             tg.create_task(self._command_subscription())
             tg.create_task(self._state_subscription())
@@ -212,30 +214,6 @@ class TravelService(Service[TravelState, TravelConfig]):
 
     def _current_step_completion(self) -> float:
         return self._step_elapsed_minutes() / self._step_max_minutes()
-
-    def to_dict(self) -> Jsonable:
-        return {
-            "state": self._ship_state,
-            "planet_graph": self._planet_graph.to_dict(),
-            "step_start": self._step_start,
-            "current_step_id": self._current_step_id,
-            "step_elapsed_minutes": self._step_elapsed_minutes(),
-            "travel_tick_seconds": self._travel_tick_seconds,
-        }
-
-    @classmethod
-    def from_dict(cls, data: Jsonable) -> Self:
-        new_start = datetime.utcnow() - timedelta(minutes=data["step_elapsed_minutes"])
-        return cls(
-            TravelState(
-                ship_state=data["state"],
-                planet_graph=PlanetGraph.from_dict(data["planet_graph"]),
-                step_start=new_start,
-                pause_start=data["pause_start"],
-                current_step_id=data["current_step_id"],
-            ),
-            TravelConfig(data["travel_tick_seconds"]),
-        )
 
     def _current_graph_flow_state(self) -> dict:
         return NxToFlowGraphConverter(self._planet_graph).node_link_to_flow(

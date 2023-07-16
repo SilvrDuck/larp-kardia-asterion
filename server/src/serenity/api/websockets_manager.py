@@ -29,9 +29,7 @@ class WebsocketsManager:
             logging.warning(f"Websocket {websocket} not found in active connections.")
 
     async def disconnect_all(self) -> None:
-        await asyncio.gather(
-            *[self.disconnect(connection) for connection in self._active_connections]
-        )
+        await asyncio.gather(*[self.disconnect(connection) for connection in self._active_connections])
 
     async def broadcast(self, message: str):
         for connection in self._active_connections:

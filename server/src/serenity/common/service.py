@@ -2,17 +2,50 @@ import asyncio
 from typing import Generic, Self, TypeVar
 from pydantic import BaseModel
 from abc import ABC, ABCMeta, abstractmethod
-from serenity.common.definitions import MessageType, Topic
+from serenity.common.definitions import Jsonable, MessageType, Topic
 
 from serenity.common.redis_client import RedisClient, RedisMessage
-from serenity.common.has_model import HasDictRepr
+from serenity.common.dict_convertible import DictConvertible
 from redis.asyncio.lock import Lock
 
 StateModel = TypeVar("StateModel", bound=BaseModel)
 ConfigModel = TypeVar("ConfigModel", bound=BaseModel)
 
 
-class Service(HasDictRepr, ABC, Generic[StateModel, ConfigModel]):
+class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
+    # -----------------------------------------------
+    # Abstract methods
+    # -----------------------------------------------
+
+    @abstractmethod
+    @classmethod
+    def default_service(cls) -> Self:
+        pass
+
+    @abstractmethod
+    def _update_state(self, state: StateModel) -> None:
+        pass
+
+    @abstractmethod
+    def _to_state(self) -> StateModel:
+        pass
+
+    @abstractmethod
+    def _update_config(self, config: ConfigModel) -> None:
+        pass
+
+    @abstractmethod
+    def _to_config(self) -> ConfigModel:
+        pass
+
+    @abstractmethod
+    async def _start(self) -> None:
+        pass
+
+    # -----------------------------------------------
+    # Concrete methods
+    # -----------------------------------------------
+
     redis = RedisClient()
 
     def __init__(self, state: StateModel, config: ConfigModel) -> None:
@@ -21,11 +54,6 @@ class Service(HasDictRepr, ABC, Generic[StateModel, ConfigModel]):
 
     async def get_self_lock(self) -> Lock:
         return await self.redis.get_lock(type(self).__name__)
-
-    @abstractmethod
-    @classmethod
-    def default_service(cls) -> Self:
-        pass
 
     async def _persist(self) -> None:
         await self.redis.set(self._get_save_key, self.to_dict())
@@ -37,10 +65,6 @@ class Service(HasDictRepr, ABC, Generic[StateModel, ConfigModel]):
     @classmethod
     def _get_save_key(cls) -> str:
         return f"__PERSISTED_OBJECT__{cls.__name__}"
-
-    @abstractmethod
-    async def _start(self) -> None:
-        pass
 
     async def start(self) -> None:
         async with asyncio.TaskGroup() as tg:
@@ -62,13 +86,9 @@ class Service(HasDictRepr, ABC, Generic[StateModel, ConfigModel]):
                 case RedisMessage(type=MessageType.TRAVEL_STATE, data=state):
                     self.update_state(state)
 
-    @abstractmethod
-    async def _update_config(self, config: ConfigModel) -> None:
-        pass
-
     async def _broadcast_config(self) -> None:
         await self.redis.publish(
-            RedisMessage(type=MessageType.TRAVEL_CONFIG, data=self.to_dict()),
+            RedisMessage(type=MessageType.TRAVEL_CONFIG, data=self.to_config()),
             Topic.CONFIG,
         )
 
@@ -78,13 +98,9 @@ class Service(HasDictRepr, ABC, Generic[StateModel, ConfigModel]):
             await self._persist()
             await self._broadcast_config()
 
-    @abstractmethod
-    def _update_state(self, state: StateModel) -> None:
-        pass
-
     async def _broadcast_state(self) -> None:
         await self.redis.publish(
-            RedisMessage(type=MessageType.TRAVEL_STATE, data=self.to_dict()),
+            RedisMessage(type=MessageType.TRAVEL_STATE, data=self.to_state()),
             Topic.STATE,
         )
 
@@ -93,3 +109,16 @@ class Service(HasDictRepr, ABC, Generic[StateModel, ConfigModel]):
             self._update_state(state)
             await self._persist()
             await self._broadcast_state()
+
+    def to_dict(self) -> Jsonable:
+        return {
+            "state": self._to_state(),
+            "config": self._to_config(),
+        }
+
+    @classmethod
+    def from_dict(cls, data: Jsonable) -> Self:
+        return cls(
+            state=cls._from_state(data["state"]),
+            config=cls._from_config(data["config"]),
+        )
