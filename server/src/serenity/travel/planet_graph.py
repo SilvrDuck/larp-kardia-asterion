@@ -1,4 +1,7 @@
+from typing import Self
 import networkx as nx
+import orjson
+from serenity.common.config import settings
 
 from serenity.common.definitions import PlanetaryConfig
 
@@ -13,3 +16,23 @@ class PlanetGraph(nx.DiGraph):
 
     def reachable_planets(self, source_id: str) -> set[str]:
         return self.successors(source_id)
+
+    def starting_planet(self) -> str:
+        in_degrees = self.in_degree()
+
+        candidates = []
+        for node_id, in_degree in in_degrees:
+            if in_degree == 0:
+                candidates.append(node_id)
+
+        if len(candidates) != 1:
+            raise ValueError("Planet graph must have exactly one starting planet")
+
+        return candidates[0]
+
+    @classmethod
+    def default_planet_graph(cls) -> Self:
+        with open(settings.planetary_config_path, "rb") as file:
+            planetary_config = orjson.loads(file.read())
+        planetary_config = PlanetaryConfig(**planetary_config)
+        return cls(planetary_config)

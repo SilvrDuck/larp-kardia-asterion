@@ -5,9 +5,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.websockets import WebSocket
 
-from serenity.api.websockets import WebsocketsBroadcaster
+from serenity.api.websockets_manager import WebsocketsManager
 from serenity.common.config import settings
-from serenity.common.definitions import GameState, RedisChannel, ShipModel
+from serenity.common.definitions import GameState, Topic, ShipModel
 from serenity.common.redis_client import RedisClient
 from serenity.travel.travel_service import TravelService
 
@@ -21,7 +21,7 @@ app.add_middleware(
     allow_origins=settings.cors_origins,
 )
 
-dashboard_broadcaster = WebsocketsBroadcaster(RedisChannel.DASHBOARDS)
+dashboard_manager = WebsocketsManager(Topic.DASHBOARDS)
 redis = RedisClient()
 
 if settings.restore_persisted_state:
@@ -30,25 +30,25 @@ else:
     travel_service = TravelService()
 
 
-@app.websocket("/dashboard")
-async def dashboard(websocket: WebSocket) -> None:
-    await dashboard_broadcaster.connect(websocket)
-    await travel_service.emit_game_state()
-    await dashboard_broadcaster.receive_loop(websocket)
-
-
 @app.on_event("startup")
 async def startup_event() -> None:
     await redis.release_all_locks()
     asyncio.create_task(travel_service.run())
-    asyncio.create_task(dashboard_broadcaster.broadcast_loop())
+    asyncio.create_task(dashboard_manager.broadcast_loop())
 
 
 @app.on_event("shutdown")
 async def shutdown_event() -> None:
-    await dashboard_broadcaster.disconnect_all()
+    await dashboard_manager.disconnect_all()
     await redis.release_all_locks()
     await redis.terminate_all_channels()
+
+
+@app.websocket("/dashboard")
+async def dashboard(websocket: WebSocket) -> None:
+    await dashboard_manager.subscribe_to_broadcast(websocket)
+    await travel_service.emit_game_state()
+    await dashboard_manager.publish_socket_messages(websocket)
 
 
 @app.get("/game_state")
@@ -63,9 +63,9 @@ async def resume() -> None:
 
 @app.get("/take_off/{target_id}")
 async def take_off(target_id: str) -> None:
-    await travel_service.take_off(target_id)
+    await travel_service.takeoff(target_id)
 
 
 @app.post("/start_battle")
 async def start_battle(attacking_ship: ShipModel) -> None:
-    await redis.publish(attacking_ship, RedisChannel.BATTLE)
+    await redis.publish(attacking_ship, Topic.BATTLE)

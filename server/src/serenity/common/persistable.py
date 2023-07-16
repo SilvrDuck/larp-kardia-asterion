@@ -14,9 +14,17 @@ class Persistable(ABC):
     def restore(cls) -> Self:
         return cls.from_dict(cls.redis.get(cls._get_save_key()))
 
+    def update(self, data: dict) -> None:
+        try:
+            prepared_data = self._prepare_from_dict(data)
+        except Exception as err:
+            raise ValueError(f"Invalid data for {type(self).__name__}: {err}")
+
+        self.__dict__.update(prepared_data)
+
     @classmethod
     def _get_save_key(cls) -> str:
-        return f"SAVED_SERVICE_{cls.__name__}"
+        return f"__PERSISTED_OBJECT__{cls.__name__}"
 
     @abstractmethod
     def to_dict(self) -> dict:
@@ -30,7 +38,10 @@ class Persistable(ABC):
     @classmethod
     def from_dict(cls, data: dict) -> Self:  # type: ignore
         #  type: ignore
-        prepared_data = cls._prepare_from_dict(data)
+        try:
+            prepared_data = cls._prepare_from_dict(data)
+        except Exception as err:
+            raise ValueError(f"Invalid data for {cls.__name__}: {err}")
 
         class Blank:
             """Blank class for initialising from existing data."""

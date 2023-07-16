@@ -9,19 +9,33 @@ from pydantic import BaseModel, Field
 Jsonable = None | int | str | bool | List[Any] | Dict[str, Any] | datetime | Enum
 
 
-class RedisSignal(Enum):
+class RedisSignal(str, Enum):
     SHUTDOWN = "__shutdown__"
     STOP_BATTLE = "__stop_battle__"
 
 
-class RedisChannel(Enum):
-    DASHBOARDS = "dashboards"
-    BATTLE = "battle"
+class Topic(str, Enum):
+    COMMAND = "command"
+    STATE = "state"
+    STATE_TO_UPDATE = "state_to_update"
+    CONFIG = "config"
+    CONFIG_TO_UPDATE = "config_to_update"
+    SOUND = "sound"
+    LIGHT = "light"
 
 
-class Owner(Enum):
-    PLAYERS = auto()
-    NPCS = auto()
+class MessageType(str, Enum):
+    SYSTEM = "system"
+    SONAR_STATE = "sonar_state"
+    SONAR_CONFIG = "sonar_config"
+    TRAVEL_STATE = "travel_state"
+    TRAVEL_CONFIG = "travel_config"
+    TRAVEL_TAKEOFF = "travel_takeoff"
+
+
+class Owner(str, Enum):
+    PLAYERS = "players"
+    NPCS = "npcs"
 
 
 class ShipModel(BaseModel):

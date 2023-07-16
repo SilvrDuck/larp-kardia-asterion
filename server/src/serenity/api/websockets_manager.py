@@ -5,17 +5,17 @@ import orjson
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.websockets import WebSocketState
 
-from serenity.common.definitions import RedisChannel
+from serenity.common.definitions import Topic
 from serenity.common.redis_client import RedisClient
 
 
-class WebsocketsBroadcaster:
-    def __init__(self, target_channel: RedisChannel) -> None:
+class WebsocketsManager:
+    def __init__(self, topic: Topic) -> None:
         self._active_connections: set[WebSocket] = set()
         self._redis = RedisClient()
-        self._target_channel = target_channel
+        self._topic = topic
 
-    async def connect(self, websocket: WebSocket) -> None:
+    async def subscribe_to_broadcast(self, websocket: WebSocket) -> None:
         await websocket.accept()
         self._active_connections.add(websocket)
 
@@ -29,7 +29,9 @@ class WebsocketsBroadcaster:
             logging.warning(f"Websocket {websocket} not found in active connections.")
 
     async def disconnect_all(self) -> None:
-        await asyncio.gather(*[self.disconnect(connection) for connection in self._active_connections])
+        await asyncio.gather(
+            *[self.disconnect(connection) for connection in self._active_connections]
+        )
 
     async def broadcast(self, message: str):
         for connection in self._active_connections:
@@ -40,13 +42,13 @@ class WebsocketsBroadcaster:
                 self._active_connections.remove(connection)
 
     async def broadcast_loop(self):
-        subscription = self._redis.subscribtion_iterator(self._target_channel)
+        subscription = self._redis.subscribtion_iterator(self._topic)
 
         async for message in subscription:
             logging.debug(f"Broadcasting message: {message}")
             await self.broadcast(message)
 
-    async def receive_loop(self, websocket: WebSocket):
+    async def publish_socket_messages(self, websocket: WebSocket):
         try:
             while True:
                 await self._receive_and_publish(websocket)
@@ -58,7 +60,7 @@ class WebsocketsBroadcaster:
         message = orjson.loads(message)
 
         try:
-            target_channel = RedisChannel(message["channel"])
+            target_channel = Topic(message["channel"])
             logging.debug(f"Publishing message: {message} to channel: {target_channel}")
             await self._redis.publish(message, target_channel)
         except (KeyError, ValueError) as err:

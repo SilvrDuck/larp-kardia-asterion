@@ -3,7 +3,16 @@ from enum import Enum, auto
 from typing import List, Optional, Self, Tuple
 
 from serenity.common.persistable import Persistable
-from serenity.sonar.actors import Asteroid, GameActor, Launchable, Mine, Owner, Ship, Torpedo, Trail
+from serenity.sonar.actors import (
+    Asteroid,
+    GameActor,
+    Launchable,
+    Mine,
+    Owner,
+    Ship,
+    Torpedo,
+    Trail,
+)
 from serenity.sonar.exceptions import CannotBeAddedToCell
 
 
@@ -32,7 +41,9 @@ class Cell(Persistable):
         }
 
     def _has_trail_for(self, owner: Owner) -> bool:
-        return any(isinstance(actor, Trail) and actor.owner == owner for actor in self._content)
+        return any(
+            isinstance(actor, Trail) and actor.owner == owner for actor in self._content
+        )
 
     def has_asteroid(self) -> bool:
         return self._has_asteroid
@@ -77,11 +88,11 @@ class Cell(Persistable):
                 pass
 
 
-class Direction(Enum):
-    North = auto()
-    South = auto()
-    East = auto()
-    West = auto()
+class Direction(str, Enum):
+    North = "north"
+    South = "south"
+    East = "east"
+    West = "west"
 
 
 @dataclass(frozen=True)
@@ -122,7 +133,9 @@ class Map(Persistable):
             "width": self.width,
             "height": self.height,
             "_grid": [[cell.to_dict() for cell in row] for row in self._grid],
-            "_ship_positions": {owner: asdict(position) for owner, position in self._ship_positions},
+            "_ship_positions": {
+                owner: asdict(position) for owner, position in self._ship_positions
+            },
         }
 
     @classmethod
@@ -132,7 +145,8 @@ class Map(Persistable):
             "height": data["height"],
             "_grid": [[Cell.from_dict(cell) for cell in row] for row in data["_grid"]],
             "_ship_positions": {
-                Owner(owner): GridPosition.from_dict(position) for owner, position in data["_ship_positions"]
+                Owner(owner): GridPosition.from_dict(position)
+                for owner, position in data["_ship_positions"]
             },
         }
 
@@ -174,13 +188,21 @@ class Map(Persistable):
         surrounding_cells = {}
 
         if ship_position.y > 0:
-            surrounding_cells[Direction.North] = self._grid[ship_position.y - 1][ship_position.x]
+            surrounding_cells[Direction.North] = self._grid[ship_position.y - 1][
+                ship_position.x
+            ]
         if ship_position.y < self.height - 1:
-            surrounding_cells[Direction.South] = self._grid[ship_position.y + 1][ship_position.x]
+            surrounding_cells[Direction.South] = self._grid[ship_position.y + 1][
+                ship_position.x
+            ]
         if ship_position.x > 0:
-            surrounding_cells[Direction.West] = self._grid[ship_position.y][ship_position.x - 1]
+            surrounding_cells[Direction.West] = self._grid[ship_position.y][
+                ship_position.x - 1
+            ]
         if ship_position.x < self.width - 1:
-            surrounding_cells[Direction.East] = self._grid[ship_position.y][ship_position.x + 1]
+            surrounding_cells[Direction.East] = self._grid[ship_position.y][
+                ship_position.x + 1
+            ]
 
         available_moves = []
 
@@ -225,7 +247,9 @@ class Map(Persistable):
                     return mine, cell.position
         raise ValueError(f"Mine {mine_uid} not found")
 
-    def _apply_damage_with_falloff(self, launchable: Launchable, target: GridPosition) -> None:
+    def _apply_damage_with_falloff(
+        self, launchable: Launchable, target: GridPosition
+    ) -> None:
         damaged_cells = self._cells_in_radius(target, launchable.radius)
         for cell_distance in damaged_cells:
             damage = launchable.damage - cell_distance.distance
@@ -235,7 +259,9 @@ class Map(Persistable):
         mine, mine_position = self._find_mine(mine_uid)
         self._apply_damage_with_falloff(mine, mine_position)
 
-    def _cells_in_radius(self, position: GridPosition, reach: int) -> List[CellDistance]:
+    def _cells_in_radius(
+        self, position: GridPosition, reach: int
+    ) -> List[CellDistance]:
         cell_distances = []
         for y in range(position.y - reach, position.y + reach + 1):
             for x in range(position.x - reach, position.x + reach + 1):

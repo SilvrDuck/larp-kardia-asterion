@@ -4,7 +4,7 @@ from typing import Callable, List
 import orjson
 
 from redis.asyncio import StrictRedis
-from serenity.common.definitions import Owner, RedisChannel, RedisSignal, ShipModel
+from serenity.common.definitions import Owner, Topic, RedisSignal, ShipModel
 
 from serenity.common.persistable import Persistable
 from serenity.sonar.actors import Mine, Ship, Torpedo
@@ -21,7 +21,9 @@ class SonarService(Persistable):
             hp=settings.serenity_hp,
             owner=Owner.PLAYER,
         )
-        self._asteroid_positions = self._get_asteroid_positions(settings.sonar_map_file_name)
+        self._asteroid_positions = self._get_asteroid_positions(
+            settings.sonar_map_file_name
+        )
 
     async def start_battle(self, npc_ship: ShipModel) -> None:
         async with self.redis.get_lock(__file__):
@@ -53,7 +55,7 @@ class SonarService(Persistable):
 
             map_function(self._map)
 
-            await self.redis.publish(self._battle_state(), RedisChannel.DASHBOARDS)
+            await self.redis.publish(self._battle_state(), Topic.DASHBOARDS)
 
     async def move_ship(self, owner: Owner, direction: Direction) -> None:
         await self._resolve_action(lambda map: map.move_ship(owner, direction))
@@ -98,12 +100,15 @@ class SonarService(Persistable):
         with open(settings.asteroid_map_dir / map_file_name) as file:
             map_data = orjson.loads(file.read())
 
-        return [GridPosition(x=asteroid["x"], y=asteroid["y"]) for asteroid in map_data["asteroids"]]
+        return [
+            GridPosition(x=asteroid["x"], y=asteroid["y"])
+            for asteroid in map_data["asteroids"]
+        ]
 
     async def end_battle(self) -> None:
         async with self.redis.get_lock(__file__):
             self._map = None
-            await self.redis.publish(RedisSignal.STOP_BATTLE, RedisChannel.BATTLE)
+            await self.redis.publish(RedisSignal.STOP_BATTLE, Topic.BATTLE)
 
     def from_dict(self, d: dict):
         raise NotImplementedError()
