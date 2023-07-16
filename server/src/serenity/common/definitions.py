@@ -8,11 +8,15 @@ from pydantic import BaseModel, Field
 
 Jsonable = None | int | str | bool | List[Any] | Dict[str, Any] | datetime | Enum
 
-SHUTDOWN_SIGNAL = "__shutdown__"
+
+class RedisSignal(Enum):
+    SHUTDOWN = "__shutdown__"
+    STOP_BATTLE = "__stop_battle__"
 
 
 class RedisChannel(Enum):
     DASHBOARDS = "dashboards"
+    BATTLE = "battle"
 
 
 class Owner(Enum):

@@ -1,13 +1,16 @@
 import asyncio
+from logging import Logger
+import logging
 import random
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Tuple
 
 import orjson
+import pydantic
 
 from serenity.common.config import settings
-from serenity.common.definitions import GameState, RedisChannel
+from serenity.common.definitions import GameState, RedisChannel, RedisSignal, ShipModel
 from serenity.common.persistable import Persistable
 from serenity.travel.exceptions import CannotTakeOffException
 from serenity.travel.nx_to_flow_converter import NxToFlowGraphConverter
@@ -72,10 +75,28 @@ class TravelService(Persistable):
         self._state = state
 
     async def run(self) -> None:
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(self._run_tick_loop())
+            tg.create_task(self._run_battle_status_loop())
+
+    async def _run_tick_loop(self) -> None:
         while True:
             async with self.redis.get_lock(__file__):
                 await self._tick()
             await asyncio.sleep(settings.travel_tick_seconds)
+
+    async def _run_battle_status_loop(self) -> None:
+        subscription = self.redis.subscribtion_iterator(RedisChannel.BATTLE)
+
+        async for message in subscription:
+            if message == RedisSignal.BATTLE_STOPPED.value:
+                await self.resume()
+            else:
+                try:
+                    ShipModel.model_validate(message)
+                    await self.pause()
+                except pydantic.ValidationError:
+                    logging.exception("Message couldn't be parsed as a Ship object: %s", message)
 
     async def pause(self) -> None:
         if self._state == State.Paused:

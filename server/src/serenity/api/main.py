@@ -7,7 +7,7 @@ from fastapi.websockets import WebSocket
 
 from serenity.api.websockets import WebsocketsBroadcaster
 from serenity.common.config import settings
-from serenity.common.definitions import GameState, RedisChannel
+from serenity.common.definitions import GameState, RedisChannel, ShipModel
 from serenity.common.redis_client import RedisClient
 from serenity.travel.travel_service import TravelService
 
@@ -22,6 +22,7 @@ app.add_middleware(
 )
 
 dashboard_broadcaster = WebsocketsBroadcaster(RedisChannel.DASHBOARDS)
+redis = RedisClient()
 
 if settings.restore_persisted_state:
     travel_service = TravelService.restore()
@@ -38,7 +39,7 @@ async def dashboard(websocket: WebSocket) -> None:
 
 @app.on_event("startup")
 async def startup_event() -> None:
-    RedisClient().release_all_locks()
+    await redis.release_all_locks()
     asyncio.create_task(travel_service.run())
     asyncio.create_task(dashboard_broadcaster.broadcast_loop())
 
@@ -46,7 +47,8 @@ async def startup_event() -> None:
 @app.on_event("shutdown")
 async def shutdown_event() -> None:
     await dashboard_broadcaster.disconnect_all()
-    await RedisClient().terminate_all_channels()
+    await redis.release_all_locks()
+    await redis.terminate_all_channels()
 
 
 @app.get("/game_state")
@@ -62,3 +64,8 @@ async def resume() -> None:
 @app.get("/take_off/{target_id}")
 async def take_off(target_id: str) -> None:
     await travel_service.take_off(target_id)
+
+
+@app.post("/start_battle")
+async def start_battle(attacking_ship: ShipModel) -> None:
+    await redis.publish(attacking_ship, RedisChannel.BATTLE)

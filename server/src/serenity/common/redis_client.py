@@ -8,7 +8,12 @@ from redis.asyncio import StrictRedis
 from redis.asyncio.lock import Lock
 
 from serenity.common.config import settings
-from serenity.common.definitions import SHUTDOWN_SIGNAL, Jsonable, RedisChannel
+from serenity.common.definitions import (
+    SHUTDOWN_SIGNAL,
+    Jsonable,
+    RedisChannel,
+    RedisSignal,
+)
 
 
 class RedisClient:
@@ -43,7 +48,7 @@ class RedisClient:
                 if message is not None:
                     message = self._treat_subscription_message(message)
 
-                    if message == SHUTDOWN_SIGNAL:
+                    if message == RedisSignal.SHUTDOWN.value:
                         return
 
                     yield message
@@ -58,9 +63,9 @@ class RedisClient:
     def get_lock(self, key: str) -> Lock:
         return self._client.lock(f"__lock__{hash(key)}")
 
-    def release_all_locks(self) -> None:
-        asyncio.create_task(self._client.delete("__lock__*"))
+    async def release_all_locks(self) -> None:
+        await self._client.delete("__lock__*")
 
     async def terminate_all_channels(self) -> None:
         for channel in RedisChannel:
-            await self.publish(SHUTDOWN_SIGNAL, channel)
+            await self.publish(RedisSignal.SHUTDOWN, channel)
