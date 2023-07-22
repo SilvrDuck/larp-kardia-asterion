@@ -13,6 +13,7 @@ websockets = "*"
 fastapi-websocket-pubsub = "*"
 redis = "*"
 networkx = "*"
+fastapi-mqtt = "*"
 
 [dev-packages]
 pylint = "*"

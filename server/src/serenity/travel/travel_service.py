@@ -41,7 +41,7 @@ class TravelService(Service[TravelState, TravelConfig]):
         config = TravelConfig(travel_tick_seconds=settings.travel_tick_seconds)
         return cls(state, config)
 
-    raise NotImplementedError("Need to reimplement to and from state and config, as well as removeing old GameState object")ß☮
+    raise NotImplementedError("Need to reimplement to and from state and config, as well as removeing old GameState object")ß☮ 
 
     def _update_state(self, state: TravelState) -> None:
         self._ship_state = state.ship_state
