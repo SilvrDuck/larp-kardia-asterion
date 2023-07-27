@@ -31,8 +31,11 @@ class Manager:
         '''
         self.inputs = inputs
         if timer_num is not None:
-            self._tim = machine.Timer(timer_num, freq=poll_freq)
-            self._tim.callback(self.service_inputs)
+            self._tim = machine.Timer(
+                timer_num,
+                freq=poll_freq,
+                callback=self.service_inputs,
+            )
 
     def service_inputs(self, t = None):
         '''This method is called by the timer interrupt and runs the 'service_input'
@@ -149,7 +152,7 @@ class DigitalBase(InputBase):
         # the self._reads variable holds the digital readings, each reading
         # occupying one bit position; the most recent read is in the LSB
         # position.
-        if pull == machine.Pin.PULL_UP:
+        if self._pin.value() == 1:
             self._reads = self._mask
             self._cur_val = 1
         else:

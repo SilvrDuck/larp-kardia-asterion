@@ -8,7 +8,7 @@ import {
 } from "react-router-dom";
 import Captain from './pages/Captain.tsx'
 import { ChakraProvider } from '@chakra-ui/react'
-import { GameContext } from './lib/gameContext.tsx';
+import { TravelContext } from './lib/travelState.tsx';
 
 
 const router = createBrowserRouter([
@@ -25,10 +25,10 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <GameContext.Provider value={null}>
+    <TravelContext.Provider value={null}>
       <ChakraProvider>
         <RouterProvider router={router} />
       </ChakraProvider>
-    </GameContext.Provider>
+    </TravelContext.Provider>
   </React.StrictMode>,
 )

@@ -1,24 +1,55 @@
 from fastapi import FastAPI
-from fastapi_mqtt import FastMQTT, MQTTConfig
-
+from paho.mqtt.client import Client as MQTTClient
+from collections import defaultdict
 app = FastAPI()
+mqtt = MQTTClient()
+mqtt.connect("localhost", 1883, 60)
 
-mqtt_config = MQTTConfig()
+state = defaultdict(int)
 
-mqtt = FastMQTT(
-    config=mqtt_config
-)
+def on_message(client, userdata, message):
 
-mqtt.init_app(app)
+    message = message.payload.decode("utf-8")
 
-@mqtt.on_connect()
-def connect(client, flags, rc, properties):
-    mqtt.client.subscribe("test")
+    if message == "__init__":
+        print("recieved init")
+        for key, value in state.items():
+            mqtt.publish("led", key + str(int(value)))
+        return
 
-@mqtt.on_message()
-async def message(client, topic, payload, qos, properties):
-    print("Received message: " + topic + payload.decode())
-    mqtt.publish("fromfast", payload)
+    print("Received ", message)
 
+    # switch
+    state[message] = not state[message]
 
+    to_up = turnoffiffull()
+    #to_up = []
+    to_up.append(message)
 
+    for message in to_up:
+        print("Sending ", message + str(int(state[message])))
+        mqtt.publish("led", message + str(int(state[message])))
+
+def turnoffiffull():
+    to_update = []
+    for color in ["EF", "WF", "NF", "SF"]:
+        keys_for_col = [key for key in state.keys() if key.startswith(color)]
+        bk = False
+        print("checking ", keys_for_col, state)
+        for k in keys_for_col:
+            if state[k] == 0:
+                bk = True
+
+        if bk:
+            continue
+        # if all are 1
+        print("turning off ", keys_for_col)
+        for k in keys_for_col:
+            state[k] = 0
+            to_update.append(k)
+    return to_update
+            
+
+mqtt.on_message = on_message
+mqtt.subscribe("switch")
+mqtt.loop_start()

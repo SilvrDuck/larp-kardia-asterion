@@ -2,11 +2,11 @@ import { Flex } from "@chakra-ui/react";
 import { useContext, useEffect } from "react";
 import { Background, Controls, Edge, MiniMap, ReactFlow, useEdgesState, useNodesState } from "reactflow";
 import "reactflow/dist/style.css";
-import { GameContext } from "../lib/gameContext";
+import { TravelContext } from "../lib/travelState";
 
 export function PlanetSelector() {
 
-    const { react_flow_graph, current_step_id } = useContext(GameContext)
+    const { react_flow_graph, current_step_id } = useContext(TravelContext)
     console.log("from planet" + react_flow_graph.toString())
 
     const [nodes, setNodes, onNodesChange] = useNodesState(react_flow_graph.nodes);
@@ -35,6 +35,3 @@ export function PlanetSelector() {
     )
 }
 
-function useServerContext(): { gameState: any; } {
-    throw new Error("Function not implemented.");
-}

@@ -1,65 +1,97 @@
+from ast import Tuple
+from typing import Dict, Set, Callable
 import asyncio
 import logging
 
+from collections import defaultdict
 import orjson
 from fastapi import WebSocket, WebSocketDisconnect
-from fastapi.websockets import WebSocketState
 
-from serenity.common.definitions import Topic
-from serenity.common.redis_client import RedisClient
+
+from serenity.common.definitions import MessageType, ServiceType, Topic
+from serenity.common.redis_client import RedisClient, RedisMessage
 
 
 class WebsocketsManager:
-    def __init__(self, topic: Topic) -> None:
-        self._active_connections: set[WebSocket] = set()
+    def __init__(self) -> None:
+        self._active_connections: Dict[Topic, Set[WebSocket]] = defaultdict(set)
+        self._callbacks: Dict[Tuple[Topic, WebSocket], Callable[[dict], dict]] = dict()
         self._redis = RedisClient()
-        self._topic = topic
 
-    async def subscribe_to_broadcast(self, websocket: WebSocket) -> None:
+    async def subscribe_to_broadcast(self, websocket: WebSocket, topics: Set[Topic]) -> None:
         await websocket.accept()
-        self._active_connections.add(websocket)
+
+        async with self._redis.get_lock(__name__):
+            for topic in topics:
+                self._active_connections[topic].add(websocket)
+
+    def register_callback_for_topic(self, websocket: WebSocket, topic: Topic, callback: Callable[[dict], dict]) -> None:
+        self._callbacks[(topic, websocket)] = callback
+
+    async def _remove_websocket(self, websocket: WebSocket) -> None:
+        async with self._redis.get_lock(__name__):
+            for websockets in self._active_connections.values():
+                if websocket in websockets:
+                    websockets.remove(websocket)
 
     async def disconnect(self, websocket: WebSocket) -> None:
         try:
             await websocket.close(code=1001)
-            self._active_connections.remove(websocket)
+            await self._remove_websocket(websocket)
         except RuntimeError:
-            logging.warning(f"Websocket {websocket} already closed.")
+            logging.warning("Websocket %s already closed.", websocket)
         except KeyError:
-            logging.warning(f"Websocket {websocket} not found in active connections.")
+            logging.warning("Websocket %s not found.", websocket)
 
     async def disconnect_all(self) -> None:
-        await asyncio.gather(*[self.disconnect(connection) for connection in self._active_connections])
+        async with self._redis.get_lock(__name__):
+            all_websockets = set(
+                [websocket for websockets in self._active_connections.values() for websocket in websockets]
+            )
+        await asyncio.gather(*[self.disconnect(connection) for connection in all_websockets])
 
-    async def broadcast(self, message: str):
-        for connection in self._active_connections:
-            try:
-                await connection.send_json(message)
-            except RuntimeError:
-                logging.warning(f"Trying to broadcast to {connection} already closed.")
-                self._active_connections.remove(connection)
+    async def broadcast(self, message: RedisMessage, topic: Topic):
+        async with self._redis.get_lock(__name__):
+            websockets = self._active_connections[topic]
 
-    async def broadcast_loop(self):
-        subscription = self._redis.subscribtion_iterator(self._topic)
+            for connection in websockets:
+                try:
+                    logging.debug("WEBSOCK: Broadcast, %s, %s", topic, str(message)[:40])
+                    if (topic, connection) in self._callbacks:
+                        message = self._callbacks[(topic, connection)](message)
+                    else:
+                        message = message.model_dump()
+
+                    await connection.send_json(message)
+                except RuntimeError as err:
+                    logging.warning("Trying to broadcast to %s, but connection is closed (%s).", connection, err)
+                    await self._remove_websocket(connection)
+
+    async def broadcast_loop(self, topic: Topic):
+        subscription = self._redis.subscribtion_iterator(topic)
+        logging.debug(f"Starting broadcast loop for topic: {topic}")
 
         async for message in subscription:
-            logging.debug(f"Broadcasting message: {message}")
-            await self.broadcast(message)
+            await self.broadcast(message, topic)
 
-    async def publish_socket_messages(self, websocket: WebSocket):
+    async def forward_socket_messages(self, websocket: WebSocket):
         try:
             while True:
                 await self._receive_and_publish(websocket)
         except WebSocketDisconnect:
-            self.disconnect(websocket)
+            await self.disconnect(websocket)
 
     async def _receive_and_publish(self, websocket):
+      
         message = await websocket.receive_text()
         message = orjson.loads(message)
 
         try:
-            target_channel = Topic(message["channel"])
-            logging.debug(f"Publishing message: {message} to channel: {target_channel}")
-            await self._redis.publish(message, target_channel)
+            topic = Topic(message["topic"])
+            logging.debug("WEBSOCK: Reveive publish, %s, %s", topic, str(message)[:40])
+            redis_message = RedisMessage(
+                type=MessageType(message["type"]), concerns=ServiceType(message["concerns"]), data=message["data"]
+            )
+            await self._redis.publish(redis_message, topic)
         except (KeyError, ValueError) as err:
-            logging.error(f"Invalid message received: {message}, reason: {err}.")
+            logging.error("Invalid message received: %s, %s", message, err)

@@ -1,10 +1,13 @@
 from __future__ import annotations
+from abc import ABC, abstractmethod
 
 from datetime import datetime
 from enum import Enum, auto
 from typing import Any, Dict, List, Tuple
 
 from pydantic import BaseModel, Field
+
+
 
 Jsonable = None | int | str | bool | List[Any] | Dict[str, Any] | datetime | Enum
 
@@ -16,21 +19,24 @@ class RedisSignal(str, Enum):
 
 class Topic(str, Enum):
     COMMAND = "command"
-    STATE = "state"
-    STATE_TO_UPDATE = "state_to_update"
-    CONFIG = "config"
-    CONFIG_TO_UPDATE = "config_to_update"
+    PROPOSE_STATE = "propose_state"
+    BROADCAST_STATE = "broadcast_state"
     SOUND = "sound"
     LIGHT = "light"
 
 
 class MessageType(str, Enum):
     SYSTEM = "system"
-    SONAR_STATE = "sonar_state"
-    SONAR_CONFIG = "sonar_config"
-    TRAVEL_STATE = "travel_state"
-    TRAVEL_CONFIG = "travel_config"
-    TRAVEL_TAKEOFF = "travel_takeoff"
+    INIT = "init"
+    STATE = "state"
+    CONFIG = "config"
+    TAKEOFF = "takeoff"
+
+
+class ServiceType(str, Enum):
+    SONAR = "sonar"
+    TRAVEL = "travel"
+    BATTLE = "battle"
 
 
 class Owner(str, Enum):
@@ -38,16 +44,16 @@ class Owner(str, Enum):
     NPCS = "npcs"
 
 
+class KeyedBaseModel(BaseModel, ABC):
+    @staticmethod
+    @abstractmethod
+    def to_key() -> ServiceType:
+        pass
+
+
 class ShipModel(BaseModel):
     name: str
     hp: int
-
-
-class GameState(BaseModel):
-    current_step_id: str | Tuple[str, str]
-    is_in_battle: bool
-    step_completion: float = Field(..., ge=0.0, le=1.0)
-    react_flow_graph: dict
 
 
 class Step(BaseModel):
@@ -60,6 +66,7 @@ class PlanetNode(Step):
     visited: bool
     description: str
     min_step_minutes: float = Field(..., ge=0)
+    max_step_minutes: float = Field(..., ge=0)
     position_x: float
     position_y: float
 
@@ -67,6 +74,7 @@ class PlanetNode(Step):
 class PlanetLink(Step):
     source: str
     target: str
+    max_step_minutes: float = Field(..., ge=0)
 
 
 class PlanetaryConfig(BaseModel):

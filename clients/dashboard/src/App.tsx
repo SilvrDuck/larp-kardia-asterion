@@ -1,12 +1,11 @@
 
+import { TravelState, TravelContext } from './lib/travelState.tsx';
 
-import { GameState } from './definitions.tsx';
+
 import { Outlet } from 'react-router-dom';
 
-import { GameContext } from './lib/gameContext.tsx';
 import useWebSocket from 'react-use-websocket';
-
-
+import { useEffect } from 'react';
 
 
 function App() {
@@ -16,20 +15,33 @@ function App() {
   const {
     sendJsonMessage,
     lastJsonMessage,
-  } = useWebSocket(socketUrl, { shouldReconnect: (_closeEvent) => true, reconnectAttempts: 24 * 60 * 60, reconnectInterval: 3000 });
+  } = useWebSocket(socketUrl, {
+    shouldReconnect: (_closeEvent) => true, reconnectAttempts: 24 * 60 * 60, reconnectInterval: 3000,
+    onOpen: () => { console.log("Connection opened") },
+    onClose: (_closeEvent) => { console.log("Connection closed") },
+  });
 
+  useEffect(() => {
+    sendJsonMessage({
+      topic: "propose_state",
+      type: "init",
+      concerns: "travel",
+      data: null,
+    })
+  }, [sendJsonMessage])
+
+  console.log(lastJsonMessage)
   if (lastJsonMessage === null) {
     return <p>Chargement...</p>
   }
 
+
   return (
     <>
       <h1>Serenity</h1>
-
-      <GameContext.Provider value={lastJsonMessage as GameState}>
+      <TravelContext.Provider value={lastJsonMessage as TravelState}>
         <Outlet />
-      </GameContext.Provider>
-
+      </TravelContext.Provider>
     </>
   )
 }

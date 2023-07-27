@@ -1,80 +1,77 @@
 import asyncio
-from logging import Logger
-import logging
+
 import random
 from datetime import datetime, timedelta
-from enum import Enum
-from typing import Self, Tuple
 
-import orjson
-import pydantic
+from typing import Self
+
 
 from serenity.common.config import settings
 from serenity.common.definitions import (
-    GameState,
-    Jsonable,
     MessageType,
     Topic,
-    RedisSignal,
-    ShipModel,
 )
-from serenity.common.persistable import Persistable
+
 from serenity.common.redis_client import RedisMessage
 from serenity.common.service import Service
 from serenity.travel.definitions import ShipState, TravelConfig, TravelState
 from serenity.travel.exceptions import CannotTakeOffException
 from serenity.travel.nx_to_flow_converter import NxToFlowGraphConverter
-from serenity.travel.planet_graph import PlanetaryConfig, PlanetGraph
+from serenity.travel.planet_graph import PlanetGraph
 
 
 class TravelService(Service[TravelState, TravelConfig]):
+    state = TravelState
+    config = TravelConfig
+
     @classmethod
     def default_service(cls) -> Self:
-        planet_graph = PlanetGraph.default_planet_graph()
+        planetary_config = PlanetGraph.default_planetary_config()
+        planet_graph = PlanetGraph(planetary_config)
         state = TravelState(
-            ship_state=ShipState.Landed,
-            planet_graph=planet_graph,
+            ship_state=ShipState.Paused,
+            planetary_config=planetary_config,
             step_start=datetime.utcnow(),
             pause_start=datetime.utcnow(),
+            step_duration_minutes=0.0,
             current_step_id=planet_graph.starting_planet(),
         )
         config = TravelConfig(travel_tick_seconds=settings.travel_tick_seconds)
         return cls(state, config)
 
-    raise NotImplementedError("Need to reimplement to and from state and config, as well as removeing old GameState object")ß☮ 
-
     def _update_state(self, state: TravelState) -> None:
         self._ship_state = state.ship_state
-        self._planet_graph = PlanetGraph(state.planet_graph)
+        self._planet_graph = PlanetGraph(state.planetary_config)
         self._step_start = state.step_start
         self._pause_start = state.pause_start
         self._current_step_id = state.current_step_id
 
+    def _to_state(self) -> TravelState:
+        return TravelState(
+            ship_state=self._ship_state,
+            planetary_config=self._planet_graph.planetary_config,
+            step_start=self._step_start,
+            pause_start=self._pause_start,
+            step_duration_minutes=self._step_elapsed_minutes(),
+            current_step_id=self._current_step_id,
+        )
+
     def _update_config(self, config: TravelConfig) -> None:
         self._travel_tick_seconds = config.travel_tick_seconds
+
+    def _to_config(self) -> TravelConfig:
+        return TravelConfig(travel_tick_seconds=self._travel_tick_seconds)
 
     async def _start(self) -> None:
         async with asyncio.TaskGroup() as tg:
             tg.create_task(self._command_subscription())
-            tg.create_task(self._state_subscription())
             tg.create_task(self._run_tick_loop())
-
-    async def _state_subscription(self) -> None:
-        subscription = self.redis.subscribtion_iterator(Topic.STATE)
-        async for message in subscription:
-            match message:
-                case RedisMessage(type=MessageType.SONAR_STATE, data=state):
-                    raise NotImplementedError()
-                    if something:
-                        await self.pause()
-                    else:
-                        await self.resume()
 
     async def _command_subscription(self) -> None:
         subscription = self.redis.subscribtion_iterator(Topic.COMMAND)
         async for message in subscription:
             match message:
-                case RedisMessage(type=MessageType.TRAVEL_TAKEOFF, data=target_id):
+                case RedisMessage(type=MessageType.TAKEOFF, data=target_id):
                     await self.takeoff(target_id)
 
     async def takeoff(self, target_id: str) -> None:
@@ -92,10 +89,6 @@ class TravelService(Service[TravelState, TravelConfig]):
 
         async with self.get_self_lock():
             await self._takeoff(target_id)
-
-    @property
-    def state(self) -> ShipState:
-        return self._ship_state
 
     def _set_state(self, state: ShipState) -> None:
         self._ship_state = state
@@ -157,9 +150,7 @@ class TravelService(Service[TravelState, TravelConfig]):
 
     def _get_random_destination(self) -> str:
         assert isinstance(self._current_step_id, str), "current step should be a str"
-        return random.choice(
-            list(self._planet_graph.reachable_planets(self._current_step_id))
-        )
+        return random.choice(list(self._planet_graph.reachable_planets(self._current_step_id)))
 
     async def _update_travel(self) -> None:
         if self._step_elapsed_minutes() >= self._step_max_minutes():
@@ -179,9 +170,7 @@ class TravelService(Service[TravelState, TravelConfig]):
     async def _takeoff(self, target_planet_id: str) -> None:
         self._set_state(ShipState.Travelling)
         self._step_start = datetime.utcnow()
-        assert isinstance(
-            self._current_step_id, str
-        ), "current step should be a single element during take off"
+        assert isinstance(self._current_step_id, str), "current step should be a single element during take off"
         self._current_step_id = (self._current_step_id, target_planet_id)
 
         await self._broadcast_state()
@@ -204,18 +193,8 @@ class TravelService(Service[TravelState, TravelConfig]):
 
         return graph_element["max_step_minutes"]
 
-    def _game_state(self) -> GameState:
-        return GameState(
-            current_step_id=self._current_step_id,
-            is_in_battle=False,
-            step_completion=self._current_step_completion(),
-            react_flow_graph=self._current_graph_flow_state(),
-        )
-
     def _current_step_completion(self) -> float:
         return self._step_elapsed_minutes() / self._step_max_minutes()
 
     def _current_graph_flow_state(self) -> dict:
-        return NxToFlowGraphConverter(self._planet_graph).node_link_to_flow(
-            self._current_step_id
-        )
+        return NxToFlowGraphConverter(self._planet_graph).node_link_to_flow(self._current_step_id)

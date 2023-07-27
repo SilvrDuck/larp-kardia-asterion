@@ -8,6 +8,7 @@ from serenity.common.definitions import PlanetaryConfig
 
 class PlanetGraph(nx.DiGraph):
     def __init__(self, planetary_config: PlanetaryConfig):
+        self.planetary_config = planetary_config
         graph = nx.node_link_graph(planetary_config.model_dump())
         super().__init__(graph)
 
@@ -31,8 +32,6 @@ class PlanetGraph(nx.DiGraph):
         return candidates[0]
 
     @classmethod
-    def default_planet_graph(cls) -> Self:
+    def default_planetary_config(cls) -> Self:
         with open(settings.planetary_config_path, "rb") as file:
-            planetary_config = orjson.loads(file.read())
-        planetary_config = PlanetaryConfig(**planetary_config)
-        return cls(planetary_config)
+            return PlanetaryConfig(**orjson.loads(file.read()))

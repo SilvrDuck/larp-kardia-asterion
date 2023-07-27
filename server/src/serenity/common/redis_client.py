@@ -1,7 +1,7 @@
 import asyncio
 from functools import singledispatchmethod
 import logging
-from typing import Optional
+from typing import Any, Optional, Type
 
 import orjson
 from pydantic import BaseModel
@@ -12,6 +12,7 @@ from serenity.common.config import settings
 from serenity.common.definitions import (
     MessageType,
     Jsonable,
+    ServiceType,
     Topic,
     RedisSignal,
 )
@@ -19,7 +20,8 @@ from serenity.common.definitions import (
 
 class RedisMessage(BaseModel):
     type: MessageType
-    data: Jsonable
+    concerns: Optional[ServiceType] = None
+    data: Optional[Any] = None
 
 
 class RedisClient:
@@ -39,6 +41,7 @@ class RedisClient:
         await self._client.set(key, orjson.dumps(value))
 
     async def publish(self, message: RedisMessage, topic: Topic) -> None:
+        logging.debug("REDIS: Publishing, %s, %s", topic, str(message)[:40])
         await self._client.publish(topic.value, orjson.dumps(message.model_dump()))
 
     async def subscribtion_iterator(self, topic: Topic) -> RedisMessage:
@@ -46,7 +49,9 @@ class RedisClient:
             await pubsub.subscribe(topic.value)
             while True:
                 message = await pubsub.get_message(ignore_subscribe_messages=True)
+
                 if message is not None:
+                    logging.debug("REDIS: Subscription iterator tick, %s, %s", topic, str(message)[:40])
                     message = RedisMessage(**orjson.loads(message["data"]))
 
                     match message:
