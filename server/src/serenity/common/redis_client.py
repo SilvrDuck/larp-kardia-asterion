@@ -35,14 +35,14 @@ class RedisClient:
         value = await self._client.get(key)
         if value is None:
             return None
-        return orjson.loads(value)
+        return orjson.loads(value)  # pylint: disable=maybe-no-member
 
     async def set(self, key: str, value: Jsonable) -> None:
-        await self._client.set(key, orjson.dumps(value))
+        await self._client.set(key, orjson.dumps(value))  # pylint: disable=maybe-no-member
 
     async def publish(self, message: RedisMessage, topic: Topic) -> None:
-        logging.debug("REDIS: Publishing, %s, %s", topic, str(message)[:40])
-        await self._client.publish(topic.value, orjson.dumps(message.model_dump()))
+        logging.debug("REDIS: Publishing, %s, %s", topic, str(message)[:70])
+        await self._client.publish(topic.value, orjson.dumps(message.model_dump()))  # pylint: disable=maybe-no-member
 
     async def subscribtion_iterator(self, topic: Topic) -> RedisMessage:
         async with self._client.pubsub() as pubsub:
@@ -51,21 +51,14 @@ class RedisClient:
                 message = await pubsub.get_message(ignore_subscribe_messages=True)
 
                 if message is not None:
-                    logging.debug("REDIS: Subscription iterator tick, %s, %s", topic, str(message)[:40])
-                    message = RedisMessage(**orjson.loads(message["data"]))
+                    logging.debug("REDIS: Subscription iterator tick, %s, %s", topic, str(message)[:70])
+                    message = RedisMessage(**orjson.loads(message["data"]))  # pylint: disable=maybe-no-member
 
                     match message:
                         case RedisMessage(type=MessageType.SYSTEM, data=RedisSignal.SHUTDOWN):
                             return
                         case _:
                             yield message
-
-    def _treat_subscription_message(self, message: dict) -> Optional[Jsonable]:
-        data = message["data"]
-        if data is not None:
-            return orjson.loads(data)
-
-        return None
 
     def get_lock(self, key: str) -> Lock:
         return self._client.lock(f"__lock__{hash(key)}")

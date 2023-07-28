@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Tuple
 from pydantic import BaseModel, Field
 
 
-
 Jsonable = None | int | str | bool | List[Any] | Dict[str, Any] | datetime | Enum
 
 
@@ -19,8 +18,8 @@ class RedisSignal(str, Enum):
 
 class Topic(str, Enum):
     COMMAND = "command"
-    PROPOSE_STATE = "propose_state"
-    BROADCAST_STATE = "broadcast_state"
+    PROPOSE_STATUS = "propose_status"
+    BROADCAST_STATUS = "broadcast_status"
     SOUND = "sound"
     LIGHT = "light"
 

@@ -32,6 +32,6 @@ class PlanetGraph(nx.DiGraph):
         return candidates[0]
 
     @classmethod
-    def default_planetary_config(cls) -> Self:
+    def default_planetary_config(cls) -> PlanetaryConfig:
         with open(settings.planetary_config_path, "rb") as file:
             return PlanetaryConfig(**orjson.loads(file.read()))

@@ -88,7 +88,7 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
             tg.create_task(self._config_subscription())
 
     async def _config_subscription(self) -> None:
-        subscription = self.redis.subscribtion_iterator(Topic.PROPOSE_STATE)
+        subscription = self.redis.subscribtion_iterator(Topic.PROPOSE_STATUS)
         async for message in subscription:
             key = self.state.to_key()
             match message:
@@ -100,7 +100,7 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
                         await self._broadcast_config()
 
     async def _state_subscription(self) -> None:
-        subscription = self.redis.subscribtion_iterator(Topic.PROPOSE_STATE)
+        subscription = self.redis.subscribtion_iterator(Topic.PROPOSE_STATUS)
         async for message in subscription:
             key = self.state.to_key()
             match message:
@@ -114,7 +114,7 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
     async def _broadcast_config(self) -> None:
         await self.redis.publish(
             RedisMessage(type=MessageType.CONFIG, concerns=self.config.to_key(), data=self._to_config()),
-            Topic.BROADCAST_STATE,
+            Topic.BROADCAST_STATUS,
         )
 
     async def update_config(self, config: ConfigModel) -> None:
@@ -126,7 +126,7 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
     async def _broadcast_state(self) -> None:
         await self.redis.publish(
             RedisMessage(type=MessageType.STATE, concerns=self.state.to_key(), data=self._to_state()),
-            Topic.BROADCAST_STATE,
+            Topic.BROADCAST_STATUS,
         )
 
     async def update_state(self, state: StateModel) -> None:

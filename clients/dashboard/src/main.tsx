@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
+import App from './pages/App.tsx'
+import Test from './pages/Test.tsx'
 import './index.css'
 import {
   createBrowserRouter,
@@ -8,7 +9,8 @@ import {
 } from "react-router-dom";
 import Captain from './pages/Captain.tsx'
 import { ChakraProvider } from '@chakra-ui/react'
-import { TravelContext } from './lib/travelState.tsx';
+import { WebsocketProvider } from './lib/websocketProvider.tsx';
+import { TravelContext, TravelProvider } from './lib/travelProvider.tsx'
 
 
 const router = createBrowserRouter([
@@ -25,10 +27,12 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <TravelContext.Provider value={null}>
-      <ChakraProvider>
-        <RouterProvider router={router} />
-      </ChakraProvider>
-    </TravelContext.Provider>
+    <WebsocketProvider>
+      <TravelProvider>
+        <ChakraProvider>
+          <RouterProvider router={router} />
+        </ChakraProvider>
+      </TravelProvider>
+    </WebsocketProvider>
   </React.StrictMode>,
 )

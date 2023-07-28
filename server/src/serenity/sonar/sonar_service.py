@@ -53,7 +53,7 @@ class SonarService(Persistable):
 
             map_function(self._map)
 
-            await self.redis.publish(self._battle_state(), Topic.DASHBOARDS)
+            await self.redis.publish(self._battle_state(), Topic.BROADCAST_STATUS)
 
     async def move_ship(self, owner: Owner, direction: Direction) -> None:
         await self._resolve_action(lambda map: map.move_ship(owner, direction))

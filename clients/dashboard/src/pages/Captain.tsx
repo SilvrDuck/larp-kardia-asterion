@@ -1,22 +1,15 @@
 
-import { useContext } from "react";
 import { BattleMap } from "./BattleMap";
 import { PlanetSelector } from "./PlanetSelector";
-import { TravelContext } from "../lib/travelState";
 
 function Captain() {
 
-    const travelState = useContext(TravelContext)
+    const is_in_battle = false
 
-    if (travelState.is_in_battle) {
-        return (
-            <BattleMap />
-        )
-    }
-    else {
-        return (
-            <PlanetSelector />
-        )
+    if (is_in_battle) {
+        return <BattleMap />
+    } else {
+        return <PlanetSelector />
     }
 }
 

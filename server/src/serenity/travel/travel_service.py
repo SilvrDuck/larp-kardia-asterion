@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 
 from typing import Self
 
+from pydantic import BaseModel
+
 
 from serenity.common.config import settings
 from serenity.common.definitions import (

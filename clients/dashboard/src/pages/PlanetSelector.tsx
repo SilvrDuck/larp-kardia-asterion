@@ -2,20 +2,24 @@ import { Flex } from "@chakra-ui/react";
 import { useContext, useEffect } from "react";
 import { Background, Controls, Edge, MiniMap, ReactFlow, useEdgesState, useNodesState } from "reactflow";
 import "reactflow/dist/style.css";
-import { TravelContext } from "../lib/travelState";
+import { TravelContext } from "../lib/travelProvider";
+import { WebsocketContext } from "../lib/websocketProvider";
 
 export function PlanetSelector() {
 
-    const { react_flow_graph, current_step_id } = useContext(TravelContext)
-    console.log("from planet" + react_flow_graph.toString())
+    const { } = useContext(TravelContext)
 
-    const [nodes, setNodes, onNodesChange] = useNodesState(react_flow_graph.nodes);
-    const [edges, setEdges, onEdgesChange] = useEdgesState(react_flow_graph.edges);
+    const { planetary_config, current_step_id } = useContext(TravelContext)
+    console.log("from planet " + current_step_id)
+    console.log("with conf" + JSON.stringify(planetary_config))
+
+    const [nodes, setNodes, onNodesChange] = useNodesState(planetary_config.nodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(planetary_config.edges);
 
     useEffect(() => {
-        setNodes(react_flow_graph.nodes)
-        setEdges(react_flow_graph.edges)
-    }, [react_flow_graph])
+        setNodes(planetary_config.nodes)
+        setEdges(planetary_config.edges)
+    }, [planetary_config])
 
     // should take full size of container
     return (
