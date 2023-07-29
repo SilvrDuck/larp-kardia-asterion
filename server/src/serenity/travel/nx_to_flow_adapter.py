@@ -66,6 +66,7 @@ class NxToFlowAdapter(Adapter[TravelState]):
     @classmethod
     def _prepare_nodes(cls, graph: PlanetGraph, current_id: str | Tuple[str, str]) -> List[dict]:
         is_landed = isinstance(current_id, str)
+
         return [
             {
                 "id": node["id"],

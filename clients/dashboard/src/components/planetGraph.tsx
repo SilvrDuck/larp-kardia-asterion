@@ -44,7 +44,7 @@ export function PlanetGraph() {
                 fitView>
                 <MiniMap style={{ height: 120 }} zoomable pannable />
                 <Controls />
-                <Background color="#444" gap={12} variant="cross" />
+                <Background color="#222" gap={50} size={15} variant="cross" />
             </ReactFlow>
     )
 }

@@ -1,76 +1,536 @@
 {
     "nodes": [
         {
-            "id": "earth",
-            "name": "Earth",
-            "visited": true,
-            "description": "The planet we live on",
+            "id": "0a",
+            "name": "Zephoria",
+            "visited": false,
+            "description": "",
             "min_step_minutes": 0.1,
-            "max_step_minutes": 5,
+            "max_step_minutes": 45,
             "position_x": 0,
             "position_y": 0
         },
         {
-            "id": "mars",
-            "name": "Mars",
+            "id": "1a",
+            "name": "Quasarria",
             "visited": false,
-            "description": "The planet we want to live on",
+            "description": "",
             "min_step_minutes": 0.1,
-            "max_step_minutes": 20,
-            "position_x": 0,
+            "max_step_minutes": 45,
+            "position_x": 350,
+            "position_y": -320
+        },
+        {
+            "id": "1b",
+            "name": "Nebulon Prime",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 500,
+            "position_y": -30
+        },
+        {
+            "id": "1c",
+            "name": "Xylon-7",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 300,
+            "position_y": 350
+        },
+        {
+            "id": "2a",
+            "name": "Arcadia Minor",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 750,
+            "position_y": -250
+        },
+        {
+            "id": "2b",
+            "name": "CygnusX-9",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 1000,
+            "position_y": 40
+        },
+        {
+            "id": "2c",
+            "name": "Astralis-Alpha",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 820,
+            "position_y": 360
+        },
+        {
+            "id": "3a",
+            "name": "Elysium Nova",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 1200,
+            "position_y": -200
+        },
+        {
+            "id": "3b",
+            "name": "Hyperion Majoris",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 1500,
+            "position_y": 60
+        },
+        {
+            "id": "3c",
+            "name": "Lyra-6",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 1400,
+            "position_y": 400
+        },
+        {
+            "id": "4a",
+            "name": "Orionis IX",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 1720,
+            "position_y": -150
+        },
+        {
+            "id": "4b",
+            "name": "Nova-Theta",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 2000,
+            "position_y": 110
+        },
+        {
+            "id": "4c",
+            "name": "Pandoras Veil",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 1790,
+            "position_y": 550
+        },
+        {
+            "id": "5a",
+            "name": "Terraforma",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 2520,
+            "position_y": -220
+        },
+        {
+            "id": "5b",
+            "name": "Celestion Prime",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 2500,
             "position_y": 100
         },
         {
-            "id": "venus",
-            "name": "Venus",
+            "id": "5c",
+            "name": "Seraphis-7",
             "visited": false,
-            "description": "The planet we don't want to live on",
+            "description": "",
             "min_step_minutes": 0.1,
-            "max_step_minutes": 20,
-            "position_x": 100,
-            "position_y": 100
+            "max_step_minutes": 45,
+            "position_x": 2340,
+            "position_y": 340
         },
         {
-            "id": "jupiter",
-            "name": "Jupiter",
+            "id": "6a",
+            "name": "Aquaria Prime",
             "visited": false,
-            "description": "The planet we can't live on",
+            "description": "",
             "min_step_minutes": 0.1,
-            "max_step_minutes": 20,
-            "position_x": 50,
-            "position_y": 200
+            "max_step_minutes": 45,
+            "position_x": 2790,
+            "position_y": -310
         },
         {
-            "id": "pluton",
-            "name": "Pluton",
+            "id": "6b",
+            "name": "Vortexia",
             "visited": false,
-            "description": "The planet that is very far",
+            "description": "",
             "min_step_minutes": 0.1,
-            "max_step_minutes": 20,
-            "position_x": 100,
-            "position_y": 200
+            "max_step_minutes": 45,
+            "position_x": 3000,
+            "position_y": 0
+        },
+        {
+            "id": "6c",
+            "name": "Aetheria Minor",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 2850,
+            "position_y": 320
+        },
+        {
+            "id": "7a",
+            "name": "Helios-7",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 3600,
+            "position_y": -20
+        },
+        {
+            "id": "7b",
+            "name": "Eratosthenes-1",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 3350,
+            "position_y": -200
+        },
+        {
+            "id": "7c",
+            "name": "Senigalia",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 3400,
+            "position_y": 300
+        },
+        {
+            "id": "7d",
+            "name": "Doreos",
+            "visited": false,
+            "description": "",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 45,
+            "position_x": 3520,
+            "position_y": 500
         }
     ],
     "links": [
         {
-            "source": "earth",
-            "target": "mars",
-            "max_step_minutes": 0.2
+            "source": "0a",
+            "target": "1a",
+            "max_step_minutes": 0.1
         },
         {
-            "source": "earth",
-            "target": "venus",
-            "max_step_minutes": 0.2
+            "source": "0a",
+            "target": "1b",
+            "max_step_minutes": 0.1
         },
         {
-            "source": "mars",
-            "target": "jupiter",
-            "max_step_minutes": 0.2
+            "source": "0a",
+            "target": "1c",
+            "max_step_minutes": 0.1
         },
         {
-            "source": "jupiter",
-            "target": "pluton",
-            "max_step_minutes": 0.2
+            "source": "1a",
+            "target": "2a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "1a",
+            "target": "2b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "1a",
+            "target": "2c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "1b",
+            "target": "2a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "1b",
+            "target": "2b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "1b",
+            "target": "2c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "1c",
+            "target": "2a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "1c",
+            "target": "2b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "1c",
+            "target": "2c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "2a",
+            "target": "3a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "2a",
+            "target": "3b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "2a",
+            "target": "3c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "2b",
+            "target": "3a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "2b",
+            "target": "3b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "2b",
+            "target": "3c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "2c",
+            "target": "3a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "2c",
+            "target": "3b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "2c",
+            "target": "3c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "3a",
+            "target": "4a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "3a",
+            "target": "4b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "3a",
+            "target": "4c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "3b",
+            "target": "4a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "3b",
+            "target": "4b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "3b",
+            "target": "4c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "3c",
+            "target": "4a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "3c",
+            "target": "4b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "3c",
+            "target": "4c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "4a",
+            "target": "5a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "4a",
+            "target": "5b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "4a",
+            "target": "5c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "4b",
+            "target": "5a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "4b",
+            "target": "5b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "4b",
+            "target": "5c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "4c",
+            "target": "5a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "4c",
+            "target": "5b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "4c",
+            "target": "5c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "5a",
+            "target": "6a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "5a",
+            "target": "6b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "5a",
+            "target": "6c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "5b",
+            "target": "6a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "5b",
+            "target": "6b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "5b",
+            "target": "6c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "5c",
+            "target": "6a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "5c",
+            "target": "6b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "5c",
+            "target": "6c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "6a",
+            "target": "7a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "6a",
+            "target": "7b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "6a",
+            "target": "7c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "6a",
+            "target": "7d",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "6b",
+            "target": "7a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "6b",
+            "target": "7b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "6b",
+            "target": "7c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "6b",
+            "target": "7d",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "6c",
+            "target": "7a",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "6c",
+            "target": "7b",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "6c",
+            "target": "7c",
+            "max_step_minutes": 0.1
+        },
+        {
+            "source": "6c",
+            "target": "7d",
+            "max_step_minutes": 0.1
         }
     ]
 }

@@ -1,5 +1,6 @@
-import { extendTheme } from "@chakra-ui/react";
+import { StyleFunctionProps, extendTheme } from "@chakra-ui/react";
 import { mode } from "@chakra-ui/theme-tools";
+import bg from "@assets/bg.png";
 
 export const theme = extendTheme({
   styles: {
@@ -7,7 +8,8 @@ export const theme = extendTheme({
       body: {
         color: 'default',
         bg: '#111',
-      },
+        backgroundImage: bg,
+    },
     }),
   },
 })

@@ -52,6 +52,8 @@ class TravelService(Service[TravelState, TravelConfig]):
         self._pause_start = state.pause_start
         self._current_step_id = state.current_step_id
 
+        self._set_visited(self._current_step_id)
+
     def _to_state(self) -> TravelState:
         return TravelState(
             ship_state=self._ship_state,
