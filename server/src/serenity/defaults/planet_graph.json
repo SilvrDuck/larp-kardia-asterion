@@ -39,6 +39,16 @@
             "max_step_minutes": 20,
             "position_x": 50,
             "position_y": 200
+        },
+        {
+            "id": "pluton",
+            "name": "Pluton",
+            "visited": false,
+            "description": "The planet that is very far",
+            "min_step_minutes": 0.1,
+            "max_step_minutes": 20,
+            "position_x": 100,
+            "position_y": 200
         }
     ],
     "links": [
@@ -55,6 +65,11 @@
         {
             "source": "mars",
             "target": "jupiter",
+            "max_step_minutes": 0.2
+        },
+        {
+            "source": "jupiter",
+            "target": "pluton",
             "max_step_minutes": 0.2
         }
     ]

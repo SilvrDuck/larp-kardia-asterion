@@ -113,8 +113,12 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
 
     async def _broadcast_config(self) -> None:
         await self.redis.publish(
-            RedisMessage(type=MessageType.CONFIG, concerns=self.config.to_key(), data=self._to_config()),
-            Topic.BROADCAST_STATUS,
+            RedisMessage(
+                topic=Topic.BROADCAST_STATUS,
+                type=MessageType.CONFIG,
+                concerns=self.config.to_key(),
+                data=self._to_config(),
+            ),
         )
 
     async def update_config(self, config: ConfigModel) -> None:
@@ -125,9 +129,18 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
 
     async def _broadcast_state(self) -> None:
         await self.redis.publish(
-            RedisMessage(type=MessageType.STATE, concerns=self.state.to_key(), data=self._to_state()),
-            Topic.BROADCAST_STATUS,
+            RedisMessage(
+                topic=Topic.BROADCAST_STATUS,
+                type=MessageType.STATE,
+                concerns=self.state.to_key(),
+                data=self._to_state(),
+            ),
         )
+
+    async def broadcast_status(self) -> None:
+        async with self.get_self_lock():
+            await self._broadcast_state()
+            await self._broadcast_config()
 
     async def update_state(self, state: StateModel) -> None:
         async with self.get_self_lock():

@@ -1,4 +1,5 @@
-from ast import Tuple
+from ast import List, Tuple
+import json
 from typing import Dict, Set, Callable
 import asyncio
 import logging
@@ -16,7 +17,7 @@ class WebsocketsManager:
     def __init__(self) -> None:
         self._active_connections: Dict[Topic, Set[WebSocket]] = defaultdict(set)
         self._redis = RedisClient()
-        self._adapters: Dict[Tuple[WebSocket, Topic], Adapter] = {}
+        self._adapters: Dict[Tuple[WebSocket, Topic], List[Adapter]] = defaultdict(list)
 
     async def subscribe_to_broadcast(self, websocket: WebSocket, topics: Set[Topic]) -> None:
         await websocket.accept()
@@ -46,32 +47,35 @@ class WebsocketsManager:
             )
             await asyncio.gather(*[self._disconnect(connection) for connection in all_websockets])
 
-    async def broadcast(self, message: RedisMessage, topic: Topic):
+    async def broadcast(self, message: RedisMessage):
         async with self._redis.get_lock(__name__):
-            websockets = self._active_connections[topic]
+            websockets = self._active_connections[message.topic]
 
             for connection in websockets:
                 try:
-                    data = self.prepare_broadcast(message, connection, topic)
+                    message = self._adapt_if_needed(message, connection)
+                    data = message.model_dump(mode="json")
 
-                    logging.debug("WEBSOCK: Broadcast, %s, %s", topic, str(data)[:70])
+                    logging.debug("WEBSOCK: Broadcast, %s, %s", message.topic, str(data)[:70])
                     await connection.send_json(data)
                 except RuntimeError as err:
                     logging.warning("Trying to broadcast to %s, but connection is closed (%s).", connection, err)
                     await self._remove_websocket(connection)
 
-    def prepare_broadcast(self, message: RedisMessage, connection: WebSocket, topic: Topic) -> Jsonable:
-        if (connection, topic) in self._adapters:
-            return self._adapters[(connection, topic)].adapt(message)
+    def _adapt_if_needed(self, message: RedisMessage, connection: WebSocket) -> RedisMessage:
+        if (connection, message.topic) in self._adapters:
+            adapters = self._adapters[(connection, message.topic)]
+            for adapter in adapters:
+                message = adapter.adapt_if_needed(message)
 
-        return message.data.model_dump(mode="json")
+        return message
 
     async def broadcast_loop(self, topic: Topic):
         subscription = self._redis.subscribtion_iterator(topic)
         logging.debug("Starting broadcast loop for topic: %s", topic)
 
         async for message in subscription:
-            await self.broadcast(message, topic)
+            await self.broadcast(message)
 
     async def forward_socket_messages(self, websocket: WebSocket):
         try:
@@ -85,15 +89,17 @@ class WebsocketsManager:
         message = orjson.loads(message)  # pylint: disable=maybe-no-member
 
         try:
-            topic = Topic(message["topic"])
-            logging.debug("WEBSOCK: Reveive publish, %s, %s", topic, str(message)[:70])
             redis_message = RedisMessage(
-                type=MessageType(message["type"]), concerns=ServiceType(message["concerns"]), data=message["data"]
+                topic=Topic(message["topic"]),
+                type=MessageType(message["type"]),
+                concerns=ServiceType(message["concerns"]),
+                data=message["data"],
             )
-            await self._redis.publish(redis_message, topic)
+            logging.debug("WEBSOCK: Reveive publish, %s", str(message)[:70])
+            await self._redis.publish(redis_message)
         except (KeyError, ValueError) as err:
             logging.error("Invalid message received: %s, %s", message, err)
 
     async def add_adapter(self, websocket: WebSocket, topic: Topic, adapter: Adapter) -> None:
         async with self._redis.get_lock(__name__):
-            self._adapters[(websocket, topic)] = adapter
+            self._adapters[(websocket, topic)].append(adapter)

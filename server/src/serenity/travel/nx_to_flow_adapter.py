@@ -3,7 +3,7 @@ from typing import List, Tuple
 from serenity.common.adapter import Adapter
 from serenity.common.definitions import Jsonable
 from serenity.common.redis_client import RedisMessage
-
+import networkx as nx
 from serenity.travel.definitions import TravelState
 from serenity.travel.planet_graph import PlanetGraph
 
@@ -18,6 +18,7 @@ class NxToFlowAdapter(Adapter[TravelState]):
 
         output = model.model_dump(exclude={"planetary_config"}, mode="json")
         output["flow_graph"] = flow_graph
+        output["num_steps"] = nx.dag_longest_path_length(graph) + 1
 
         return output
 
@@ -57,10 +58,10 @@ class NxToFlowAdapter(Adapter[TravelState]):
     @classmethod
     def _get_node_type(cls, graph: PlanetGraph, node_id: str) -> str:
         if graph.in_degree(node_id) == 0:
-            return "input"
+            return "planetInput"
         elif graph.out_degree(node_id) == 0:
-            return "output"
-        return "default"
+            return "planetOutput"
+        return "planetDefault"
 
     @classmethod
     def _prepare_nodes(cls, graph: PlanetGraph, current_id: str | Tuple[str, str]) -> List[dict]:
@@ -70,11 +71,14 @@ class NxToFlowAdapter(Adapter[TravelState]):
                 "id": node["id"],
                 "type": cls._get_node_type(graph, node["id"]),
                 "data": {
+                    "id": node["id"],
                     "label": node["name"],
                     "description": node["description"],
                     "min_step_minutes": node["min_step_minutes"],
                     "max_step_minutes": node["max_step_minutes"],
                     "is_current": node["id"] == current_id,
+                    "is_next_step": cls._is_next_step(graph, node["id"], current_id),
+                    "visited": node["visited"],
                 },
                 "position": {"x": node["position_x"], "y": node["position_y"]},
                 "hidden": not cls._visible(graph, node, current_id),

@@ -20,6 +20,7 @@ from serenity.common.definitions import (
 
 
 class RedisMessage(BaseModel):
+    topic: Topic
     type: MessageType
     concerns: Optional[ServiceType] = None
     data: Optional[Any] = None
@@ -41,9 +42,11 @@ class RedisClient:
     async def set(self, key: str, value: Jsonable) -> None:
         await self._client.set(key, orjson.dumps(value))  # pylint: disable=maybe-no-member
 
-    async def publish(self, message: RedisMessage, topic: Topic) -> None:
-        logging.debug("REDIS: Publishing, %s, %s", topic, str(message)[:70])
-        await self._client.publish(topic.value, orjson.dumps(message.model_dump()))  # pylint: disable=maybe-no-member
+    async def publish(self, message: RedisMessage) -> None:
+        logging.debug("REDIS: Publishing, %s", str(message)[:70])
+        await self._client.publish(
+            message.topic.value, orjson.dumps(message.model_dump())  # pylint: disable=maybe-no-member
+        )
 
     async def subscribtion_iterator(self, topic: Topic) -> RedisMessage:
         async with self._client.pubsub() as pubsub:
@@ -56,7 +59,7 @@ class RedisClient:
                     message = RedisMessage(**orjson.loads(message["data"]))  # pylint: disable=maybe-no-member
 
                     match message:
-                        case RedisMessage(type=MessageType.SYSTEM, data=RedisSignal.SHUTDOWN):
+                        case RedisMessage(topic=topic, type=MessageType.SYSTEM, data=RedisSignal.SHUTDOWN):
                             return
                         case _:
                             yield message
@@ -70,6 +73,5 @@ class RedisClient:
     async def terminate_all_channels(self) -> None:
         for topic in Topic:
             await self.publish(
-                RedisMessage(type=MessageType.SYSTEM, data=RedisSignal.SHUTDOWN),
-                topic,
+                RedisMessage(topic=topic, type=MessageType.SYSTEM, data=RedisSignal.SHUTDOWN),
             )

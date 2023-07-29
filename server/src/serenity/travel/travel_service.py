@@ -16,7 +16,6 @@ from serenity.common.redis_client import RedisMessage
 from serenity.common.service import Service
 from serenity.travel.definitions import ShipState, TravelConfig, TravelState
 from serenity.travel.exceptions import CannotTakeOffException
-from serenity.travel.nx_to_flow_adapter import NxToFlowAdapter
 from serenity.travel.planet_graph import PlanetGraph
 
 
@@ -56,7 +55,7 @@ class TravelService(Service[TravelState, TravelConfig]):
     def _to_state(self) -> TravelState:
         return TravelState(
             ship_state=self._ship_state,
-            planetary_config=self._planet_graph.planetary_config,
+            planetary_config=self._planet_graph.to_planetary_config(),
             step_start=self._step_start,
             pause_start=self._pause_start,
             step_duration_minutes=self._step_elapsed_minutes(),
@@ -83,7 +82,7 @@ class TravelService(Service[TravelState, TravelConfig]):
 
     async def takeoff(self, target_id: str) -> None:
         if self._ship_state != ShipState.Landed:
-            raise CannotTakeOffException("Cannot take off when not landed")
+            raise CannotTakeOffException("Cannot take off when not landed, maybe paused?")
         if self._step_elapsed_minutes() < self._step_min_minutes():
             raise CannotTakeOffException("Cannot take off before minimum stop time")
 
