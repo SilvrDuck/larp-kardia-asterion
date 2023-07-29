@@ -43,7 +43,7 @@ class Owner(str, Enum):
     NPCS = "npcs"
 
 
-class KeyedBaseModel(BaseModel, ABC):
+class StatusBaseModel(BaseModel, ABC):
     @staticmethod
     @abstractmethod
     def to_key() -> ServiceType:

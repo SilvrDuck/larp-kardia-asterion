@@ -6,9 +6,9 @@ import logging
 from collections import defaultdict
 import orjson
 from fastapi import WebSocket, WebSocketDisconnect
+from serenity.common.adapter import Adapter
 
-
-from serenity.common.definitions import MessageType, ServiceType, Topic
+from serenity.common.definitions import Jsonable, MessageType, ServiceType, Topic
 from serenity.common.redis_client import RedisClient, RedisMessage
 
 
@@ -16,6 +16,7 @@ class WebsocketsManager:
     def __init__(self) -> None:
         self._active_connections: Dict[Topic, Set[WebSocket]] = defaultdict(set)
         self._redis = RedisClient()
+        self._adapters: Dict[Tuple[WebSocket, Topic], Adapter] = {}
 
     async def subscribe_to_broadcast(self, websocket: WebSocket, topics: Set[Topic]) -> None:
         await websocket.accept()
@@ -25,15 +26,14 @@ class WebsocketsManager:
                 self._active_connections[topic].add(websocket)
 
     async def _remove_websocket(self, websocket: WebSocket) -> None:
-        async with self._redis.get_lock(__name__):
-            for websockets in self._active_connections.values():
-                if websocket in websockets:
-                    websockets.remove(websocket)
+        for websockets in self._active_connections.values():
+            if websocket in websockets:
+                websockets.remove(websocket)
 
-    async def disconnect(self, websocket: WebSocket) -> None:
+    async def _disconnect(self, websocket: WebSocket) -> None:
         try:
-            await websocket.close(code=1001)
             await self._remove_websocket(websocket)
+            await websocket.close(code=1001)
         except RuntimeError:
             logging.warning("Websocket %s already closed.", websocket)
         except KeyError:
@@ -44,7 +44,7 @@ class WebsocketsManager:
             all_websockets = set(
                 [websocket for websockets in self._active_connections.values() for websocket in websockets]
             )
-        await asyncio.gather(*[self.disconnect(connection) for connection in all_websockets])
+            await asyncio.gather(*[self._disconnect(connection) for connection in all_websockets])
 
     async def broadcast(self, message: RedisMessage, topic: Topic):
         async with self._redis.get_lock(__name__):
@@ -52,12 +52,19 @@ class WebsocketsManager:
 
             for connection in websockets:
                 try:
-                    logging.debug("WEBSOCK: Broadcast, %s, %s", topic, str(message)[:70])
-                    message = message.model_dump(mode="json")
-                    await connection.send_json(message)
+                    data = self.prepare_broadcast(message, connection, topic)
+
+                    logging.debug("WEBSOCK: Broadcast, %s, %s", topic, str(data)[:70])
+                    await connection.send_json(data)
                 except RuntimeError as err:
                     logging.warning("Trying to broadcast to %s, but connection is closed (%s).", connection, err)
                     await self._remove_websocket(connection)
+
+    def prepare_broadcast(self, message: RedisMessage, connection: WebSocket, topic: Topic) -> Jsonable:
+        if (connection, topic) in self._adapters:
+            return self._adapters[(connection, topic)].adapt(message)
+
+        return message.data.model_dump(mode="json")
 
     async def broadcast_loop(self, topic: Topic):
         subscription = self._redis.subscribtion_iterator(topic)
@@ -71,7 +78,7 @@ class WebsocketsManager:
             while True:
                 await self._receive_and_publish(websocket)
         except WebSocketDisconnect:
-            await self.disconnect(websocket)
+            await self._disconnect(websocket)
 
     async def _receive_and_publish(self, websocket):
         message = await websocket.receive_text()
@@ -86,3 +93,7 @@ class WebsocketsManager:
             await self._redis.publish(redis_message, topic)
         except (KeyError, ValueError) as err:
             logging.error("Invalid message received: %s, %s", message, err)
+
+    async def add_adapter(self, websocket: WebSocket, topic: Topic, adapter: Adapter) -> None:
+        async with self._redis.get_lock(__name__):
+            self._adapters[(websocket, topic)] = adapter

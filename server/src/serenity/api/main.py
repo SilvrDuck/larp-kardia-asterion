@@ -12,12 +12,12 @@ from serenity.common.config import settings
 from serenity.common.definitions import MessageType, PlanetaryConfig, Topic, ShipModel
 from serenity.common.redis_client import RedisClient, RedisMessage
 from serenity.travel.definitions import ShipState, TravelState
+from serenity.travel.nx_to_flow_adapter import NxToFlowAdapter
 from serenity.travel.planet_graph import PlanetGraph
 from serenity.travel.travel_service import TravelService
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger(__name__)
-
 
 app = FastAPI()
 app.add_middleware(
@@ -39,6 +39,8 @@ async def startup_event() -> None:
     await redis.release_all_locks()
     asyncio.create_task(travel_service.start())
     for topic in Topic:
+        if topic != Topic.BROADCAST_STATUS:
+            continue
         asyncio.create_task(websockets_manager.broadcast_loop(topic))
 
 
@@ -51,8 +53,8 @@ async def shutdown_event() -> None:
 
 @app.websocket("/dashboard")
 async def dashboard(websocket: WebSocket) -> None:
-    raise NotImplementedError("Need to convert graph for frontend.")
     await websockets_manager.subscribe_to_broadcast(websocket, {Topic.BROADCAST_STATUS})
+    await websockets_manager.add_adapter(websocket, Topic.BROADCAST_STATUS, NxToFlowAdapter)
     await websockets_manager.forward_socket_messages(websocket)
 
 

@@ -2,15 +2,15 @@ import asyncio
 from typing import Generic, List, Self, TypeVar
 from pydantic import BaseModel
 from abc import ABC, ABCMeta, abstractmethod
-from serenity.common.definitions import Jsonable, KeyedBaseModel, MessageType, ServiceType, Topic
+from serenity.common.definitions import Jsonable, StatusBaseModel, MessageType, ServiceType, Topic
 import logging
 from serenity.common.redis_client import RedisClient, RedisMessage
 from serenity.common.dict_convertible import DictConvertible
 from redis.asyncio.lock import Lock
 
 
-StateModel = TypeVar("StateModel", bound=KeyedBaseModel)
-ConfigModel = TypeVar("ConfigModel", bound=KeyedBaseModel)
+StateModel = TypeVar("StateModel", bound=StatusBaseModel)
+ConfigModel = TypeVar("ConfigModel", bound=StatusBaseModel)
 
 
 class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):

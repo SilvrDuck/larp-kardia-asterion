@@ -5,8 +5,6 @@ from datetime import datetime, timedelta
 
 from typing import Self
 
-from pydantic import BaseModel
-
 
 from serenity.common.config import settings
 from serenity.common.definitions import (
@@ -18,13 +16,20 @@ from serenity.common.redis_client import RedisMessage
 from serenity.common.service import Service
 from serenity.travel.definitions import ShipState, TravelConfig, TravelState
 from serenity.travel.exceptions import CannotTakeOffException
-from serenity.travel.nx_to_flow_converter import NxToFlowGraphConverter
+from serenity.travel.nx_to_flow_adapter import NxToFlowAdapter
 from serenity.travel.planet_graph import PlanetGraph
 
 
 class TravelService(Service[TravelState, TravelConfig]):
     state = TravelState
     config = TravelConfig
+
+    _ship_state: ShipState
+    _planet_graph: PlanetGraph
+    _step_start: datetime
+    _pause_start: datetime
+    _current_step_id: str | tuple[str, str]
+    _travel_tick_seconds: float
 
     @classmethod
     def default_service(cls) -> Self:
@@ -124,14 +129,14 @@ class TravelService(Service[TravelState, TravelConfig]):
                 pass
             case ShipState.Landed:
                 await self._update_landed()
-            case ShipState.Travelling:
+            case ShipState.Traveling:
                 await self._update_travel()
 
     def _infer_state_from_current_step_id(self) -> ShipState:
         if isinstance(self._current_step_id, str):
             return ShipState.Landed
         elif isinstance(self._current_step_id, tuple):
-            return ShipState.Travelling
+            return ShipState.Traveling
         else:
             raise ValueError(f"Invalid current step id {self._current_step_id}")
 
@@ -170,7 +175,7 @@ class TravelService(Service[TravelState, TravelConfig]):
         self._planet_graph.nodes[node_id]["visited"] = True
 
     async def _takeoff(self, target_planet_id: str) -> None:
-        self._set_state(ShipState.Travelling)
+        self._set_state(ShipState.Traveling)
         self._step_start = datetime.utcnow()
         assert isinstance(self._current_step_id, str), "current step should be a single element during take off"
         self._current_step_id = (self._current_step_id, target_planet_id)
@@ -183,7 +188,7 @@ class TravelService(Service[TravelState, TravelConfig]):
         return self._planet_graph.nodes[self._current_step_id]["min_step_minutes"]
 
     def _is_in_space(self) -> bool:
-        return self._infer_state_from_current_step_id() == ShipState.Travelling
+        return self._infer_state_from_current_step_id() == ShipState.Traveling
 
     def _step_max_minutes(self) -> float:
         if self._is_in_space():
@@ -197,6 +202,3 @@ class TravelService(Service[TravelState, TravelConfig]):
 
     def _current_step_completion(self) -> float:
         return self._step_elapsed_minutes() / self._step_max_minutes()
-
-    def _current_graph_flow_state(self) -> dict:
-        return NxToFlowGraphConverter(self._planet_graph).node_link_to_flow(self._current_step_id)

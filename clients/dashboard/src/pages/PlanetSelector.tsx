@@ -9,17 +9,17 @@ export function PlanetSelector() {
 
     const { } = useContext(TravelContext)
 
-    const { planetary_config, current_step_id } = useContext(TravelContext)
+    const { flow_graph, current_step_id } = useContext(TravelContext)
     console.log("from planet " + current_step_id)
-    console.log("with conf" + JSON.stringify(planetary_config))
+    console.log("with conf" + JSON.stringify(flow_graph))
 
-    const [nodes, setNodes, onNodesChange] = useNodesState(planetary_config.nodes);
-    const [edges, setEdges, onEdgesChange] = useEdgesState(planetary_config.edges);
+    const [nodes, setNodes, onNodesChange] = useNodesState(flow_graph.nodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(flow_graph.edges);
 
     useEffect(() => {
-        setNodes(planetary_config.nodes)
-        setEdges(planetary_config.edges)
-    }, [planetary_config])
+        setNodes(flow_graph.nodes)
+        setEdges(flow_graph.edges)
+    }, [flow_graph])
 
     // should take full size of container
     return (
