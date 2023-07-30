@@ -2,230 +2,299 @@
     "nodes": [
         {
             "id": "0a",
-            "name": "Zephoria",
+            "name": " ",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "6000 km",
+            "period": " jours",
+            "satellites": "2",
+            "description": "La descpritponion",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 0,
             "position_y": 0
         },
         {
             "id": "1a",
-            "name": "Quasarria",
+            "name": "Thalaris IX",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "7378 km",
+            "period": "381 jours",
+            "satellites": "1",
+            "description": "Thalaris IX est une planlète au climat doux. Une grosse partie de son économie repose sur l'export de ressources agricoles",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 350,
-            "position_y": -320
+            "position_x": 300,
+            "position_y": -200
         },
         {
             "id": "1b",
-            "name": "Nebulon Prime",
+            "name": "Solunis Major",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "4124 km",
+            "period": "129 jours",
+            "satellites": "0",
+            "description": "Ancienne planète prospère. Complètement brûlée par les vents solaire suite à la perte de leur ceinture magnétique dû à un changements d'activités géologiques.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 500,
             "position_y": -30
         },
         {
             "id": "1c",
-            "name": "Xylon-7",
+            "name": "Lunoria-7",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "7957 km",
+            "period": "218 jours",
+            "satellites": "3",
+            "description": "Planète au champ magnétique anormalement fort. Cela pourrait créer des dysfonctionnement sur les outils de mesure de mauvaise qualité.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 300,
             "position_y": 350
         },
         {
             "id": "2a",
-            "name": "Arcadia Minor",
+            "name": "Zephyrion-3",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "3217 km",
+            "period": "158 jours",
+            "satellites": "0",
+            "description": "Zone de contrebande. Espace hors de la juridiction de l'empire : pas de taxes, pas de sécurité.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 750,
             "position_y": -250
         },
         {
             "id": "2b",
-            "name": "CygnusX-9",
+            "name": "Aquaterra Delta",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "7254 km",
+            "period": "462 jours",
+            "satellites": "7",
+            "description": "Planète majoritairement recouverte d'eau. Ses rares terres émergées servent de bagne pour l'empire.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 1000,
             "position_y": 40
         },
         {
             "id": "2c",
-            "name": "Astralis-Alpha",
+            "name": "Pyraxia-U2",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "5890 km",
+            "period": "298 jours",
+            "satellites": "0",
+            "description": "Ancienne zone technologique florissante, suite à des coupes budgétaire cette planète ne sert plus qu'à produire des outils tel que des manivelles ou des presse-purées",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 820,
             "position_y": 360
         },
         {
             "id": "3a",
-            "name": "Elysium Nova",
+            "name": "Celestis",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "2182 km",
+            "period": "85 jours",
+            "satellites": "0",
+            "description": "Planète au climat tropical. Son faible taux de minerais rare fait que très peu d'industries se sont intéressées à elle. Les autochtones (les Saari) ont donc été très peu influencé par la culture de l'empire.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 1200,
             "position_y": -200
         },
         {
             "id": "3b",
-            "name": "Hyperion Majoris",
+            "name": "Novastra Epsilon",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "5174 km",
+            "period": "408 jours",
+            "satellites": "1",
+            "description": "Planète au climat doux, c'est l'endroit parfait pour y acheter une maison de vacance. C'est du reste ce que font beaucoup de citoyens de l'empire, bien que la fiscalité ne soit pas idéale.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 1500,
             "position_y": 60
         },
         {
             "id": "3c",
-            "name": "Lyra-6",
+            "name": "Auriona-6B",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "6208 km",
+            "period": "352 jours",
+            "satellites": "8",
+            "description": "Réserve naturelle de 483 184 364 kilomètres carrés. Véritable sanctuaire pour des espèces tant végétales que animales très rares et menacées",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 1400,
             "position_y": 400
         },
         {
             "id": "4a",
-            "name": "Orionis IX",
+            "name": "Magmara-Prime",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "8251 km",
+            "period": "638 jours",
+            "satellites": "0",
+            "description": "Planète propriété de la société NebulaCargo. Depuis la réglementation ISO 14040_B35 sur le fret spatial, la planète a été abandonnée et ne sert plus qu'à stocker des produits défectueux.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 1720,
             "position_y": -150
         },
         {
             "id": "4b",
-            "name": "Nova-Theta",
+            "name": "Cryotis-Beta",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "5770 km",
+            "period": "328 jours",
+            "satellites": "2",
+            "description": "Avant-poste avancé de l'empire. Cette planète sert de centre administratif avancé pour la bordure extérieure.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 2000,
             "position_y": 110
         },
         {
             "id": "4c",
-            "name": "Pandoras Veil",
+            "name": "Stellara-12",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "3677 km",
+            "period": "209 jours",
+            "satellites": "2",
+            "description": "Mini-planète. Son seul avantage est que l’atmosphère y est respirable, bien que sentant fortement le soufre. Pour cette raison, peu de gens y vivent.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 1790,
             "position_y": 550
         },
         {
             "id": "5a",
-            "name": "Terraforma",
+            "name": "Vortis-8C",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "6204 km",
+            "period": "345 jours",
+            "satellites": "1",
+            "description": "Depuis maintenant une 50aine d'année, cette planète est le théâtre d'incroyables courses de vaisseau, accueillant les circuits les plus prestigieux, mais aussi des courses juniors.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 2520,
             "position_y": -220
         },
         {
             "id": "5b",
-            "name": "Celestion Prime",
+            "name": "Aurora-Exo",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "5028 km",
+            "period": "312 jours",
+            "satellites": "16",
+            "description": "Planète-media. Le seul astro-port ouvert au public est proche d'un plateau télévision, pour accueille le public lors d'émissions de TÉLÉréalité ou jeux concours.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 2500,
             "position_y": 100
         },
         {
             "id": "5c",
-            "name": "Seraphis-7",
+            "name": "Fluvia-Gamma",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "7847 km",
+            "period": "536 jours",
+            "satellites": "1",
+            "description": "le noyau de cette planète est extrêmement petit, mais une gigantesque couche d'eau la recouvre intégralement. Les villes flottantes sont généralement des endroits dédiés au bien-être, tels que des SPA, sauna ou maison de repos.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 2340,
             "position_y": 340
         },
         {
             "id": "6a",
-            "name": "Aquaria Prime",
+            "name": "Vortis-8C",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "7280 km",
+            "period": "512 jours",
+            "satellites": "0",
+            "description": "Le puis de l’empire. Recouverte à plus de 90% d’eau douce, l’empire exporte cette eau pure partout à travers toute la galaxie. Depuis le début de son exploitation il y a 190 ans, la planète a perdue 8% de son rayon.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 2790,
             "position_y": -310
         },
         {
             "id": "6b",
-            "name": "Vortexia",
+            "name": "Aetheron-4X",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "4288 km",
+            "period": "254 jours",
+            "satellites": "0",
+            "description": "Planète dortoire de l’empire. Les riches habitent sur Galaxia-Quintus, les pauvres sur Aetheron-4X. La planète étant largement recouverte d’eau, les gens vivent dans des complexes sous-marins.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 3000,
             "position_y": 0
         },
         {
             "id": "6c",
-            "name": "Aetheria Minor",
+            "name": "Galaxia-Quintus",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "6361 km",
+            "period": "364 jours",
+            "satellites": "0",
+            "description": "Galaxia-Quintus est considérée comme la banlieue chic de l’empire. Les gens les plus aisés ont un logement ici et vont travailler sur Ignatia-Delta.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 2850,
             "position_y": 320
         },
         {
             "id": "7a",
-            "name": "Helios-7",
+            "name": "Ignatia-Delta",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "6000 km",
+            "period": "300 jours",
+            "satellites": "0",
+            "description": "Capitale de l’empire. Le diamètre de la planète a été retravaillé, tout comme sa distance par rapport au soleil, pour arriver à des nombres plus harmonieux.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 3600,
             "position_y": -20
         },
         {
             "id": "7b",
-            "name": "Eratosthenes-1",
+            "name": "Serenus-5Z",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "6109 km",
+            "period": "344 jours",
+            "satellites": "4",
+            "description": "Jadis planète prospère, elle a été la victime d’une surexploitation et d’une sur-industrialisation. Cet endroit est le berceau du syndicalisme intergalactique.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 3350,
             "position_y": -200
         },
         {
             "id": "7c",
-            "name": "Senigalia",
+            "name": "Cygnus-Nox",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "4799 km",
+            "period": "337 jours",
+            "satellites": "2",
+            "description": "Berceau de L'université de Jol-Naar Cygnus-Nox est un passage obligatoire pour les gens ayant des inspirations scientifiques. Cependant, il ne faut pas négliger la forte tradition de l'artisanat que l’on retrouve beaucoup au nord.",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 3400,
             "position_y": 300
         },
         {
             "id": "7d",
-            "name": "Doreos",
+            "name": "Nebulia-7Y",
             "visited": false,
-            "description": "",
-            "min_step_minutes": 0.1,
+            "radius": "3319 km",
+            "period": "149 jours",
+            "satellites": "2",
+            "description": "ĦǁƏƢ Þľƪêñ₮ê ¢†ɎŁṽë Ć ƺǪɎƒǂ  ŁϑƔŴ ǶǪɎ Î₦₣¤_Ɽê₴Ø  ƏƢ₦₦ƒåÑ₡ë_ƒǂ ©▒▒ƒ▒▒√€",
+            "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 3520,
             "position_y": 500
@@ -235,302 +304,302 @@
         {
             "source": "0a",
             "target": "1a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "0a",
             "target": "1b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "0a",
             "target": "1c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "1a",
             "target": "2a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "1a",
             "target": "2b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "1a",
             "target": "2c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "1b",
             "target": "2a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "1b",
             "target": "2b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "1b",
             "target": "2c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "1c",
             "target": "2a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "1c",
             "target": "2b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "1c",
             "target": "2c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "2a",
             "target": "3a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "2a",
             "target": "3b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "2a",
             "target": "3c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "2b",
             "target": "3a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "2b",
             "target": "3b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "2b",
             "target": "3c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "2c",
             "target": "3a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "2c",
             "target": "3b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "2c",
             "target": "3c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "3a",
             "target": "4a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "3a",
             "target": "4b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "3a",
             "target": "4c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "3b",
             "target": "4a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "3b",
             "target": "4b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "3b",
             "target": "4c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "3c",
             "target": "4a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "3c",
             "target": "4b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "3c",
             "target": "4c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "4a",
             "target": "5a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "4a",
             "target": "5b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "4a",
             "target": "5c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "4b",
             "target": "5a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "4b",
             "target": "5b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "4b",
             "target": "5c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "4c",
             "target": "5a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "4c",
             "target": "5b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "4c",
             "target": "5c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "5a",
             "target": "6a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "5a",
             "target": "6b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "5a",
             "target": "6c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "5b",
             "target": "6a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "5b",
             "target": "6b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "5b",
             "target": "6c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "5c",
             "target": "6a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "5c",
             "target": "6b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "5c",
             "target": "6c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "6a",
             "target": "7a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "6a",
             "target": "7b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "6a",
             "target": "7c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "6a",
             "target": "7d",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "6b",
             "target": "7a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "6b",
             "target": "7b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "6b",
             "target": "7c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "6b",
             "target": "7d",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "6c",
             "target": "7a",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "6c",
             "target": "7b",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "6c",
             "target": "7c",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         },
         {
             "source": "6c",
             "target": "7d",
-            "max_step_minutes": 0.1
+            "max_step_minutes": 0.05
         }
     ]
 }

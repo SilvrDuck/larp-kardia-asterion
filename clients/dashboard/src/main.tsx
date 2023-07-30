@@ -11,6 +11,7 @@ import { ChakraProvider } from '@chakra-ui/react'
 import { WebsocketProvider } from './lib/websocketProvider.tsx';
 import { TravelProvider } from './lib/travelProvider.tsx'
 import { theme } from './theme.tsx'
+import { SonarProvider } from './lib/sonarProvider.tsx';
 
 
 const router = createBrowserRouter([
@@ -24,14 +25,15 @@ const router = createBrowserRouter([
   },
 ])
 
-
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <WebsocketProvider>
       <TravelProvider>
-        <ChakraProvider theme={theme} >
-          <RouterProvider router={router} />
-        </ChakraProvider>
+        <SonarProvider>
+          <ChakraProvider theme={theme} >
+            <RouterProvider router={router} />
+          </ChakraProvider>
+        </SonarProvider>
       </TravelProvider>
     </WebsocketProvider>
   </React.StrictMode>,

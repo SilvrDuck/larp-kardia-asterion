@@ -34,10 +34,17 @@ class Settings(BaseSettings):
     serenity_name: str = "Serenity"
     serenity_hp: int = 3
     sonar_starting_distance: int = 8
-    sonar_map_width: int = 9
-    sonar_map_height: int = 9
+    sonar_map_width: int = 15
+    sonar_map_height: int = 15
     sonar_map_file_name: Literal["default"] = "default"
     sonar_spawn_margin: int = 2
+    sonar_torpedo_damage: int = 2
+    sonar_torpedo_reach: int = 4
+    sonar_torpedo_radius: int = 2
+    sonar_mine_damage: int = 2
+    sonar_mine_reach: int = 4
+    sonar_mine_radius: int = 2
+    sonar_player_default_hp: int = 4
 
     # ---------------------------------------------------
     # Paths

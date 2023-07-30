@@ -10,11 +10,13 @@ import orjson
 
 from serenity.api.websockets_manager import WebsocketsManager
 from serenity.common.config import settings
-from serenity.common.definitions import MessageType, PlanetaryConfig, ServiceType, Topic, ShipModel
-from serenity.common.redis_client import RedisClient
+from serenity.common.definitions import MessageType, ServiceType, Topic
+from serenity.common.redis_client import RedisClient, RedisMessage
 from serenity.common.service import Service
+from serenity.sonar.sonar_service import SonarService
 from serenity.travel.definitions import ShipState, TravelState
 from serenity.travel.nx_to_flow_adapter import NxToFlowAdapter
+from serenity.sonar.definitions import Ship
 from serenity.travel.planet_graph import PlanetGraph
 from serenity.travel.travel_service import TravelService
 
@@ -31,7 +33,8 @@ websockets_manager = WebsocketsManager()
 redis = RedisClient()
 
 services_dict: Dict[Topic, Service] = {
-    ServiceType.TRAVEL: TravelService.default_service(),
+    ServiceType.TRAVEL: TravelService,
+    ServiceType.SONAR: SonarService,
 }
 
 if settings.restore_persisted_state:
@@ -63,7 +66,20 @@ async def shutdown_event() -> None:
 async def dashboard(websocket: WebSocket) -> None:
     await websockets_manager.subscribe_to_broadcast(websocket, {Topic.BROADCAST_STATUS})
     await websockets_manager.add_adapter(websocket, Topic.BROADCAST_STATUS, NxToFlowAdapter)
+
+    print("TOREMOVE TOREMOVE TEROMEVE")
+    await services[ServiceType.TRAVEL].resume()
+    await redis.publish(
+        RedisMessage(
+            topic=Topic.COMMAND,
+            type=MessageType.START_BATTLE,
+            data={"map": "alpha", "ship": Ship(name="Yow", hp=3, owner="npcs")},
+        )
+    )
+    print("TOREMOVE TOREMOVE TEROMEVE")
+
     await services[ServiceType.TRAVEL].broadcast_status()
+    await services[ServiceType.SONAR].broadcast_status()
     await websockets_manager.forward_socket_messages(websocket)
 
 
@@ -83,7 +99,7 @@ async def take_off(target_id: str) -> None:
 
 
 @app.post("/start_battle")
-async def start_battle(attacking_ship: ShipModel) -> None:
+async def start_battle(attacking_ship: Ship) -> None:
     pass
     # await redis.publish(attacking_ship, Topic.BATTLE)
 
@@ -91,3 +107,4 @@ async def start_battle(attacking_ship: ShipModel) -> None:
 @app.get("/broadcast")
 async def broadcast() -> None:
     await services[ServiceType.TRAVEL]._broadcast_state()
+    await services[ServiceType.SONAR]._broadcast_state()

@@ -37,8 +37,8 @@ export function PlanetCounter() {
                     <StepIndicator>
                         <StepStatus
                             complete={<StepIcon />}
-                            incomplete={<StepNumber />}
-                            active={<StepNumber />}
+                            incomplete={<StepNumber color="grey" />}
+                            active={<StepNumber color="white" />}
                         />
                     </StepIndicator>
                     <StepSeparator />

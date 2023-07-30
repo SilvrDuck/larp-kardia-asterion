@@ -30,12 +30,17 @@ class MessageType(str, Enum):
     STATE = "state"
     CONFIG = "config"
     TAKEOFF = "takeoff"
+    START_BATTLE = "start_battle"
+    END_BATTLE = "end_battle"
+    LAUNCH_TORPEDO = "launch_torpedo"
+    LAUNCH_MINE = "launch_mine"
+    MOVE = "move"
+    REPAIR = "repair"
 
 
 class ServiceType(str, Enum):
     SONAR = "sonar"
     TRAVEL = "travel"
-    BATTLE = "battle"
 
 
 class Owner(str, Enum):
@@ -48,36 +53,3 @@ class StatusBaseModel(BaseModel, ABC):
     @abstractmethod
     def to_key() -> ServiceType:
         pass
-
-
-class ShipModel(BaseModel):
-    name: str
-    hp: int
-
-
-class Step(BaseModel):
-    max_step_minutes: float = Field(..., ge=0.0)
-
-
-class PlanetNode(Step):
-    id: str
-    name: str
-    visited: bool
-    description: str
-    min_step_minutes: float = Field(..., ge=0)
-    max_step_minutes: float = Field(..., ge=0)
-    position_x: float
-    position_y: float
-
-
-class PlanetLink(Step):
-    source: str
-    target: str
-    max_step_minutes: float = Field(..., ge=0)
-
-
-class PlanetaryConfig(BaseModel):
-    directed: bool = True
-    multigraph: bool = False
-    nodes: List[PlanetNode]
-    links: List[PlanetLink]

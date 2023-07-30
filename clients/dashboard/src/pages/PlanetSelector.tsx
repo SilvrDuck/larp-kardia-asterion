@@ -3,19 +3,31 @@ import { useContext, useEffect } from "react";
 import { Background, Controls, MiniMap, ReactFlow, useEdgesState, useNodesState } from "reactflow";
 import "reactflow/dist/style.css";
 import { TravelContext } from "../lib/travelProvider";
-import { WebsocketContext, initMessage } from "../lib/websocketProvider";
+import { WebsocketContext } from "../lib/websocketProvider";
 import { PlanetDefault, PlanetInput, PlanetOutput } from "../components/planetNode";
 import { PlanetGraph } from "../components/planetGraph";
 import { PlanetCounter } from "../components/planetCounter";
+import bg from "@assets/backgrounds/bg_graph.png";
 
 
 
 export function PlanetSelector() {
 
+    document.body.style.backgroundImage = `url(${bg})`
+    document.body.animate([
+        { backgroundPositionX: "0px", backgroundPositionY: "0px" },
+        { backgroundPositionX: "4096px", backgroundPositionY: "-1024px" },
+    ], {
+        duration: 300000,
+        iterations: Infinity
+    }
+    )
 
     return (
         <>
-            <PlanetCounter />
+            <VStack align="stretch" pl="1.5em" pr="1.5em"  >
+                <PlanetCounter />
+            </VStack>
             <PlanetGraph />
         </>
     )

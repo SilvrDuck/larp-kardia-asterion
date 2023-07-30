@@ -1,62 +1,166 @@
+from __future__ import annotations
+
+
 import asyncio
+import logging
 import random
+
 from typing import Callable, List
 import orjson
 
-from redis.asyncio import StrictRedis
-from serenity.common.definitions import Owner, Topic, RedisSignal, ShipModel
 
-from serenity.common.persistable import Persistable
-from serenity.sonar.actors import Mine, Ship, Torpedo
+from redis.asyncio import StrictRedis
+from serenity.common.definitions import MessageType, Owner, Topic
+
+
+from serenity.common.redis_client import RedisMessage
+from serenity.common.service import Service
+from serenity.sonar.definitions import Asteroid, CellModel, Mine, Ship, Torpedo
+from serenity.sonar.definitions import MapModel, SonarConfig, SonarState
 from serenity.sonar.logic import Direction, GridPosition, Map
 
 from serenity.common.config import settings
 
 
-class SonarService(Persistable):
-    def __init__(self):
-        self._map = None
-        self._player_ship = Ship(
-            name=settings.serenity_name,
-            hp=settings.serenity_hp,
-            owner=Owner.PLAYER,
+class SonarService(Service[SonarState, SonarConfig]):
+    state_type = SonarState
+    config_type = SonarConfig
+
+    @classmethod
+    def default_service(cls) -> SonarService:
+        default_state = SonarState(
+            in_battle=False,
+            map=None,
         )
-        self._asteroid_positions = self._get_asteroid_positions(settings.sonar_map_file_name)
+        default_config = SonarConfig(
+            torpedo_damage=settings.sonar_torpedo_damage,
+            torpedo_reach=settings.sonar_torpedo_reach,
+            torpedo_radius=settings.sonar_torpedo_radius,
+            mine_damage=settings.sonar_mine_damage,
+            mine_reach=settings.sonar_mine_reach,
+            mine_radius=settings.sonar_mine_radius,
+            player_default_hp=settings.sonar_player_default_hp,
+        )
+        return cls(default_state, default_config)
 
-    async def start_battle(self, npc_ship: ShipModel) -> None:
+    def _update_state(self, state: SonarState) -> None:
+        self._in_battle = state.in_battle
+        if state.map is not None:
+            self._map = Map(state.map)
+        self._map = None
+
+    def _to_state(self) -> SonarState:
+        map_ = None
+        if self._map is not None:
+            map_ = self._map.to_model()
+        return SonarState(
+            in_battle=self._in_battle,
+            map=map_,
+        )
+
+    def _update_config(self, config: SonarConfig) -> None:
+        self._config = config
+
+    def _to_config(self) -> SonarConfig:
+        return self._config
+
+    async def _start(self) -> None:
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(self._command_subscription())
+
+    async def _command_subscription(self) -> None:
+        subscription = self.redis.subscription_iterator(Topic.COMMAND)
+        async for message in subscription:
+            try:
+                if not self._in_battle:
+                    match message:
+                        case RedisMessage(type=MessageType.START_BATTLE, data=data):
+                            await self.execute(self.start_battle, data["map"], Ship(**data["ship"]))
+                        case _:
+                            raise ValueError("Can only start battle if not in battle.")
+                else:
+                    match message:
+                        case RedisMessage(type=MessageType.END_BATTLE):
+                            await self.execute(self.end_battle)
+                        case RedisMessage(type=MessageType.MOVE, data=data):
+                            await self.execute(self.move, Owner(data["owner"]), Direction(data["direction"]))
+                        case RedisMessage(type=MessageType.LAUNCH_TORPEDO, data=data):
+                            await self.execute(
+                                self.launch_torpedo, Owner(data["owner"]), GridPosition(**data["target"])
+                            )
+                        case RedisMessage(type=MessageType.LAUNCH_MINE, data=data):
+                            await self.execute(self.place_mine, Owner(data["owner"]), GridPosition(**data["target"]))
+                        case RedisMessage(type=MessageType.REPAIR, data=data):
+                            await self.execute(self.repair, Owner(**data))
+
+            except Exception as err:
+                logging.error("SONAR: Error while processing command: %s\n%s", message, err)
+
+    async def execute(self, action: Callable, *args, **kwargs) -> None:
+        """Exectutes an action with lock and brodcasts the state afterwards."""
         async with self.redis.get_lock(__file__):
-            npc_ship = Ship(
-                name=npc_ship.name,
-                hp=npc_ship.hp,
-                owner=Owner.NPC,
+            await action(*args, **kwargs)
+            await self._broadcast_state()
+
+    def _get_asteroid_positions(self, map_file_name: str) -> List[GridPosition]:
+        with open(settings.asteroid_map_dir / f"{map_file_name}.json", encoding="utf-8") as file:
+            map_data = orjson.loads(file.read())  # type: ignore
+
+        return [GridPosition(x=asteroid["x"] - 1, y=asteroid["y"] - 1) for asteroid in map_data["asteroids"]]
+
+    def _init_grid(self, asteroids: List[GridPosition]) -> List[List[CellModel]]:
+        grid = [
+            [
+                CellModel(
+                    content=[],
+                    has_asteroid=False,
+                )
+                for _ in range(settings.sonar_map_width)
+            ]
+            for _ in range(settings.sonar_map_height)
+        ]
+
+        for asteroid in asteroids:
+            grid[asteroid.y][asteroid.x] = CellModel(
+                content=[Asteroid()],
+                has_asteroid=True,
             )
 
-            asteroids = self._asteroid_positions
+        return grid
 
-            starting_position = self._select_position(asteroids)
-            other_position = self._select_position(asteroids + [starting_position])
+    def _prepare_battle(self, map_name: str, npc_ship: Ship) -> None:
+        player_ship = Ship(
+            name=settings.serenity_name,
+            hp=self._config.player_default_hp,
+            owner=Owner.PLAYERS,
+        )
+        asteroids = self._get_asteroid_positions(map_name)
 
-            self._map = Map(
-                width=settings.sonar_map_width,
-                height=settings.sonar_map_height,
-                player_ship=self._player_ship,
-                npc_ship=npc_ship,
-                player_ship_position=starting_position,
-                npc_ship_position=other_position,
-                asteroid_positions=asteroids,
-            )
+        starting_position = self._select_position(asteroids)
+        other_position = self._select_position(asteroids + [starting_position])
 
-    async def _resolve_action(self, map_function: Callable[[Map], None]) -> None:
-        async with self.redis.get_lock(__file__):
-            if self._map is None:
-                return
+        grid = self._init_grid(asteroids)
 
-            map_function(self._map)
+        map_model = MapModel(
+            width=settings.sonar_map_width,
+            height=settings.sonar_map_height,
+            grid=grid,
+            player_ship=player_ship,
+            npc_ship=npc_ship,
+            ship_positions={
+                Owner.PLAYERS: starting_position,
+                Owner.NPCS: other_position,
+            },
+        )
 
-            await self.redis.publish(self._battle_state(), Topic.BROADCAST_STATUS)
+        return Map(map_model)
 
-    async def move_ship(self, owner: Owner, direction: Direction) -> None:
-        await self._resolve_action(lambda map: map.move_ship(owner, direction))
+    async def start_battle(self, map_name: str, npc_ship: Ship) -> None:
+        self._in_battle = True
+        self._map = self._prepare_battle(map_name, npc_ship)
+
+    async def move(self, owner: Owner, direction: Direction) -> None:
+        self._map.move_ship(owner, direction)
 
     async def launch_torpedo(self, owner: Owner, target: GridPosition) -> None:
         torpedo = Torpedo(
@@ -76,7 +180,7 @@ class SonarService(Persistable):
         )
         await self._resolve_action(lambda map: map.place_mine(mine, target))
 
-    def _battle_state(self) -> dict:
+    async def repair(self, owner: Owner) -> None:
         raise NotImplementedError()
 
     def _select_position(self, unavailable: List[GridPosition]) -> GridPosition:
@@ -94,19 +198,6 @@ class SonarService(Persistable):
             if position not in unavailable:
                 return position
 
-    def _get_asteroid_positions(self, map_file_name: str) -> List[GridPosition]:
-        with open(settings.asteroid_map_dir / map_file_name) as file:
-            map_data = orjson.loads(file.read())
-
-        return [GridPosition(x=asteroid["x"], y=asteroid["y"]) for asteroid in map_data["asteroids"]]
-
     async def end_battle(self) -> None:
-        async with self.redis.get_lock(__file__):
-            self._map = None
-            await self.redis.publish(RedisSignal.STOP_BATTLE, Topic.BATTLE)
-
-    def from_dict(self, d: dict):
-        raise NotImplementedError()
-
-    def to_dict(self) -> dict:
-        raise NotImplementedError()
+        self._map = None
+        self._in_battle = False

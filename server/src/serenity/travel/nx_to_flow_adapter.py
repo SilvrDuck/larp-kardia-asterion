@@ -1,4 +1,6 @@
 import logging
+import stat
+
 from typing import List, Tuple
 from serenity.common.adapter import Adapter
 from serenity.common.definitions import Jsonable
@@ -39,20 +41,40 @@ class NxToFlowAdapter(Adapter[TravelState]):
             {
                 "id": f"{link['source']}-{link['target']}",
                 "source": link["source"],
+                "data": {
+                    "towards_next_step": link["source"] == current_id,
+                },
                 "target": link["target"],
                 "animated": current_id == (link["source"], link["target"]),
-                "hidden": not cls._both_nodes_visible(link, graph, current_id),
+                "hidden": not cls._edge_should_be_visible(link, graph, current_id),
             }
             for link in graph.to_dict()["links"]
         ]
+
+    @staticmethod
+    def _in_travel(current_id: str | Tuple[str, str]) -> bool:
+        return isinstance(current_id, tuple)
+
+    @classmethod
+    def _edge_should_be_visible(cls, link: dict, graph: PlanetGraph, current_id: str) -> bool:
+        source_data = graph.nodes[link["source"]].copy()
+        target_data = graph.nodes[link["target"]].copy()
+
+        if source_data["visited"] and cls._is_next_step(graph, link["target"], current_id):
+            return True
+
+        if target_data["visited"] and source_data["visited"]:
+            return True
+
+        return False
 
     @classmethod
     def _both_nodes_visible(cls, link: dict, graph: PlanetGraph, current_id: str) -> bool:
         # get source node data
         source_data = graph.nodes[link["source"]].copy()
         target_data = graph.nodes[link["target"]].copy()
-        source = cls._visible(graph, {**source_data, "id": link["source"]}, current_id)
-        target = cls._visible(graph, {**target_data, "id": link["target"]}, current_id)
+        source = cls._visible_planet(graph, {**source_data, "id": link["source"]}, current_id)
+        target = cls._visible_planet(graph, {**target_data, "id": link["target"]}, current_id)
         return source and target
 
     @classmethod
@@ -80,9 +102,12 @@ class NxToFlowAdapter(Adapter[TravelState]):
                     "is_current": node["id"] == current_id,
                     "is_next_step": cls._is_next_step(graph, node["id"], current_id),
                     "visited": node["visited"],
+                    "period": node["period"],
+                    "satellites": node["satellites"],
+                    "radius": node["radius"],
                 },
                 "position": {"x": node["position_x"], "y": node["position_y"]},
-                "hidden": not cls._visible(graph, node, current_id),
+                "hidden": not cls._visible_planet(graph, node, current_id),
                 "draggable": False,
                 "selectable": is_landed and cls._is_next_step(graph, node["id"], current_id),
                 "deletable": False,
@@ -97,8 +122,20 @@ class NxToFlowAdapter(Adapter[TravelState]):
 
         return target_id in graph.reachable_planets(current_id)
 
+    @staticmethod
+    def _safe_start_id(some_id: str | Tuple[str, str]) -> str:
+        if isinstance(some_id, tuple):
+            return some_id[0]
+        return some_id
+
+    @staticmethod
+    def _safe_end_id(some_id: str | Tuple[str, str]) -> str:
+        if isinstance(some_id, tuple):
+            return some_id[1]
+        return some_id
+
     @classmethod
-    def _visible(cls, graph: PlanetGraph, node: dict, current_id: str) -> bool:
+    def _visible_planet(cls, graph: PlanetGraph, node: dict, current_id: str) -> bool:
         """We want to show only planets that have been visited or that are
         reachable from the current planet.
         """
@@ -107,5 +144,9 @@ class NxToFlowAdapter(Adapter[TravelState]):
 
         if cls._is_next_step(graph, node["id"], current_id):
             return True
+
+        for id_ in nx.ancestors(graph, cls._safe_end_id(current_id)):
+            if cls._is_next_step(graph, node["id"], id_):
+                return True
 
         return False

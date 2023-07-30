@@ -1,7 +1,9 @@
-import { Avatar, Box, keyframes, Tooltip } from '@chakra-ui/react'
-import { PlanetNodeData } from './planetNode';
+import { Avatar, Badge, Box, ButtonGroup, Divider, Heading, keyframes, Spacer, Stat, StatLabel, StatNumber, Tooltip } from '@chakra-ui/react'
+
 import { Button, useDisclosure } from '@chakra-ui/react';
 import {
+    Text,
+    Image,
     Modal,
     ModalOverlay,
     ModalContent,
@@ -9,10 +11,15 @@ import {
     ModalFooter,
     ModalBody,
     ModalCloseButton,
+    Stack,
 } from '@chakra-ui/react'
 import { useCallback, useContext } from 'react';
 import { TravelContext } from '../lib/travelProvider';
 import { WebsocketContext, WebsocketMessage } from '../lib/websocketProvider';
+import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react'
+import image from '@assets/plan_2.png';
+import { getPlanetImage } from '../lib/planetImage';
+import { get } from 'fp-ts/lib/FromState';
 
 
 export type PlanetNodeData = {
@@ -23,11 +30,15 @@ export type PlanetNodeData = {
     max_step_minutes: number,
     is_current: boolean,
     is_next_step: boolean,
+    visited: boolean,
+    radius: string,
+    period: string,
+    satellites: string,
 }
 
 
 
-function PlanetModal({ isOpen, onClose, planetId, sendMessage }) {
+function PlanetModal({ isOpen, onClose, data, sendMessage }) {
 
 
     const takeoff = () => {
@@ -35,58 +46,126 @@ function PlanetModal({ isOpen, onClose, planetId, sendMessage }) {
             topic: "command",
             type: "takeoff",
             concerns: "travel",
-            data: planetId,
+            data: data.id,
         } as WebsocketMessage)
     }
+
+    const planetCard = (<Card maxW='sm' backgroundColor="#def">
+        <CardBody>
+            <Image
+                src={getPlanetImage(data.id)}
+                borderRadius='lg'
+            />
+            <Stack mt='6' spacing='3'>
+                <Heading size='md' color="blue.800" >{data.label}</Heading>
+                <h3 >Rayon équatorial</h3>
+                <Badge >{data.radius}</Badge>
+                <h3>Période de révolution</h3>
+                <Badge>{data.period}</Badge>
+                <h3>Satellites connus</h3>
+                <Badge >{data.satellites}</Badge>
+                <Text mt='3'>
+                    <p>{data.description}</p>
+                </Text>
+            </Stack>
+        </CardBody>
+    </Card >)
 
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
             <ModalOverlay />
-            <ModalContent>
-                <ModalHeader>Modal Title</ModalHeader>
+            <ModalContent backgroundColor="blue.800" >
+                <ModalHeader>Décollage</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
-                    Lolilol
+                    {planetCard}
+                    <Box mt="1em">
+                        <p>Êtes-vous sûr de vouloir décoller vers {data.label} ?</p>
+                    </Box>
                 </ModalBody>
 
                 <ModalFooter>
-                    <Button colorScheme='blue' mr={3} onClick={takeoff}>
+                    <Button
+                        colorScheme='blue'
+                        mr={3}
+                        onClick={takeoff}
+                        _hover={{
+                            bg: "blue.300",
+                        }}
+                    >
                         Décoller !
                     </Button>
-                    <Button variant='ghost' onClick={onClose} >Annuler</Button>
+                    <Button
+                        variant='ghost'
+                        onClick={onClose}
+                        color="white"
+                        _hover={{
+                            bg: "blue.700",
+                        }}
+                    >
+                        Annuler
+                    </Button>
                 </ModalFooter>
             </ModalContent>
         </Modal>
     )
 }
 
+export function pseudoRandomRotationString(label: string) {
+    const randInt = label.charCodeAt(17 % label.length)
+    const min = "A".charCodeAt(0)
+    const max = "z".charCodeAt(0)
+    // there might be other chars than letters, but that will be spatial anomalies
+    const norm = (randInt - min) / (max - min)
 
-function PlanetButton({ data, src, size }: { data: PlanetNodeData, src: string, size: string }) {
+    const lower = 40
+    const upper = 80
+    const speed = lower + (norm * (upper - lower))
+
+
+    const sign = label.charCodeAt(11 % label.length) % 2 == 0 ? "" : "-"
+    const animationKeyframes = keyframes`
+    100% { transform: rotate(${sign}360deg); }
+    `;
+
+    return `${animationKeyframes} ${speed}s infinite linear`
+}
+
+
+
+function PlanetButton({ data }: { data: PlanetNodeData }) {
     const { ship_state } = useContext(TravelContext)
     const { isOpen, onOpen, onClose } = useDisclosure()
     const { sendMessage } = useContext(WebsocketContext)
 
-    console.log("rendering planet node", data.is_next_step)
-    console.log("ship state", ship_state)
-
     const modal = data.is_next_step && ship_state == "landed" && sendMessage != null ? PlanetModal(
-        { isOpen, onClose, planetId: data.id, sendMessage }
+        { isOpen, onClose, data, sendMessage }
     ) : <div></div>
+
+
+    const animation = pseudoRandomRotationString(data.label)
+
+    const greyedOut = !data.is_next_step && !data.visited
 
     return (
         <>
             <Box as="button" onClick={onOpen}>
                 <Tooltip label={data.description}>
+
                     <Avatar
-                        src={src}
+                        src={getPlanetImage(data.id)}
                         size="full"
                         position="absolute"
-                        top={size}
+                        top="0"
                         _hover={{
                             transform: 'scale(1.1)',
                             transition: 'transform .2s',
                         }}
+                        animation={animation}
+                        style={greyedOut ? { filter: "brightness(30%)" } : {}}
+
                     />
+
                 </Tooltip>
             </Box>
             {modal}
@@ -95,10 +174,10 @@ function PlanetButton({ data, src, size }: { data: PlanetNodeData, src: string, 
 }
 
 
-export function Planet({ data, src }: { data: PlanetNodeData, src: string }) {
+export function Planet({ data }: { data: PlanetNodeData }) {
 
     const size = '80px'
-    const color = 'teal'
+    const color = 'blue.500'
 
     const baseOpacity = data.is_current ? 1 : 0
 
@@ -116,7 +195,7 @@ export function Planet({ data, src }: { data: PlanetNodeData, src: string }) {
     }
 	`
 
-    const planetButton = PlanetButton({ data, src, size })
+    const planetButton = PlanetButton({ data })
 
     return (
         <Box

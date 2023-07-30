@@ -1,15 +1,26 @@
-import { StyleFunctionProps, extendTheme } from "@chakra-ui/react";
+import { StyleFunctionProps, extendTheme, keyframes } from "@chakra-ui/react";
 import { mode } from "@chakra-ui/theme-tools";
-import bg from "@assets/bg.png";
+
 
 export const theme = extendTheme({
   styles: {
-    global: (props: StyleFunctionProps) => ({
+    global: {
       body: {
-        color: 'default',
-        bg: '#111',
-        backgroundImage: bg,
+        bg: "#111",
+        color: "white",
+      },
+      h1: {
+        color: "blue.500",
+        marginBottom: "0.2em",
+      },
+      h2: {
+        fontSize: "1.5em",
+        color: "blue.300",
+        marginBottom: "0.5em",
+      },
+      modal: {
+        bg: "blue.900",
+      },
     },
-    }),
   },
-})
+});

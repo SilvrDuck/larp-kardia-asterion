@@ -1,4 +1,6 @@
 import asyncio
+import logging
+from math import log
 
 import random
 from datetime import datetime, timedelta
@@ -20,8 +22,8 @@ from serenity.travel.planet_graph import PlanetGraph
 
 
 class TravelService(Service[TravelState, TravelConfig]):
-    state = TravelState
-    config = TravelConfig
+    state_type = TravelState
+    config_type = TravelConfig
 
     _ship_state: ShipState
     _planet_graph: PlanetGraph
@@ -76,17 +78,25 @@ class TravelService(Service[TravelState, TravelConfig]):
             tg.create_task(self._run_tick_loop())
 
     async def _command_subscription(self) -> None:
-        subscription = self.redis.subscribtion_iterator(Topic.COMMAND)
+        subscription = self.redis.subscription_iterator(Topic.COMMAND)
         async for message in subscription:
-            match message:
-                case RedisMessage(type=MessageType.TAKEOFF, data=target_id):
-                    await self.takeoff(target_id)
+            try:
+                match message:
+                    case RedisMessage(type=MessageType.TAKEOFF, data=target_id):
+                        try:
+                            await self.takeoff(target_id)
+                        except CannotTakeOffException as e:
+                            logging.error("TRAVEL: Cannot take off: %s", e)
+                    case RedisMessage(type=MessageType.START_BATTLE):
+                        await self.pause()
+                    case RedisMessage(type=MessageType.END_BATTLE):
+                        await self.resume()
+            except Exception as err:
+                logging.error("TRAVEL: Error while handling command: %s", err)
 
     async def takeoff(self, target_id: str) -> None:
         if self._ship_state != ShipState.Landed:
             raise CannotTakeOffException("Cannot take off when not landed, maybe paused?")
-        if self._step_elapsed_minutes() < self._step_min_minutes():
-            raise CannotTakeOffException("Cannot take off before minimum stop time")
 
         reachable_planets = self._planet_graph.reachable_planets(self._current_step_id)
         if target_id not in reachable_planets:
@@ -94,6 +104,9 @@ class TravelService(Service[TravelState, TravelConfig]):
                 f"Target {target_id} is not reachable from {self._current_step_id}. "
                 f"Reachable planets: {reachable_planets}."
             )
+
+        if self._step_elapsed_minutes() < self._step_min_minutes():
+            raise CannotTakeOffException("Cannot take off before minimum stop time")
 
         async with self.get_self_lock():
             await self._takeoff(target_id)
@@ -103,9 +116,14 @@ class TravelService(Service[TravelState, TravelConfig]):
 
     async def _run_tick_loop(self) -> None:
         while True:
-            async with self.get_self_lock():
-                await self._tick()
-            await asyncio.sleep(self._travel_tick_seconds)
+            try:
+                async with self.get_self_lock():
+                    await self._tick()
+                await asyncio.sleep(self._travel_tick_seconds)
+            except asyncio.CancelledError as err:
+                raise err
+            except Exception as err:
+                logging.error("TRAVEL: Error while ticking: %s", err)
 
     async def pause(self) -> None:
         if self._ship_state == ShipState.Paused:

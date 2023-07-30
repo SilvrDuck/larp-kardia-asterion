@@ -2,6 +2,8 @@ import asyncio
 from typing import Generic, List, Self, TypeVar
 from pydantic import BaseModel
 from abc import ABC, ABCMeta, abstractmethod
+
+from typing import Type
 from serenity.common.definitions import Jsonable, StatusBaseModel, MessageType, ServiceType, Topic
 import logging
 from serenity.common.redis_client import RedisClient, RedisMessage
@@ -21,13 +23,13 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
     @property
     @classmethod
     @abstractmethod
-    def state(cls) -> StateModel:
+    def state_type(cls) -> Type[StateModel]:
         pass
 
     @property
     @classmethod
     @abstractmethod
-    def config(cls) -> ConfigModel:
+    def config_type(cls) -> Type[ConfigModel]:
         pass
 
     @classmethod
@@ -59,7 +61,7 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
     # Concrete methods
     # -----------------------------------------------
 
-    state: StateModel = StateModel
+    state_type: StateModel = StateModel
 
     redis = RedisClient()
 
@@ -88,9 +90,9 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
             tg.create_task(self._config_subscription())
 
     async def _config_subscription(self) -> None:
-        subscription = self.redis.subscribtion_iterator(Topic.PROPOSE_STATUS)
+        subscription = self.redis.subscription_iterator(Topic.PROPOSE_STATUS)
         async for message in subscription:
-            key = self.state.to_key()
+            key = self.state_type.to_key()
             match message:
                 case RedisMessage(type=MessageType.STATE, data=config):
                     if key == message.concerns:
@@ -100,9 +102,9 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
                         await self._broadcast_config()
 
     async def _state_subscription(self) -> None:
-        subscription = self.redis.subscribtion_iterator(Topic.PROPOSE_STATUS)
+        subscription = self.redis.subscription_iterator(Topic.PROPOSE_STATUS)
         async for message in subscription:
-            key = self.state.to_key()
+            key = self.state_type.to_key()
             match message:
                 case RedisMessage(type=MessageType.CONFIG, data=state):
                     if key == message.concerns:
@@ -116,7 +118,7 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
             RedisMessage(
                 topic=Topic.BROADCAST_STATUS,
                 type=MessageType.CONFIG,
-                concerns=self.config.to_key(),
+                concerns=self.config_type.to_key(),
                 data=self._to_config(),
             ),
         )
@@ -132,7 +134,7 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
             RedisMessage(
                 topic=Topic.BROADCAST_STATUS,
                 type=MessageType.STATE,
-                concerns=self.state.to_key(),
+                concerns=self.state_type.to_key(),
                 data=self._to_state(),
             ),
         )
@@ -157,6 +159,6 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
     @classmethod
     def from_dict(cls, data: Jsonable) -> Self:
         return cls(
-            state=cls.state(**data["state"]),
-            config=cls.config(**data["config"]),
+            state=cls.state_type(**data["state"]),
+            config=cls.config_type(**data["config"]),
         )

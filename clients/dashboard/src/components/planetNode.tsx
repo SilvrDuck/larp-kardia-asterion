@@ -1,6 +1,6 @@
 import { Handle, Position } from 'reactflow';
 import { Planet } from './planet.tsx';
-import { Avatar, Box, Button, Image, useDisclosure } from '@chakra-ui/react';
+import { Avatar, Box, Button, Center, Image, useDisclosure } from '@chakra-ui/react';
 import {
     Modal,
     ModalOverlay,
@@ -11,24 +11,26 @@ import {
     ModalCloseButton,
 } from '@chakra-ui/react'
 
-import image from '@assets/plan_2.png';
+
 import { useContext, useEffect, useState } from 'react';
 import { TravelContext } from '../lib/travelProvider.tsx';
 
 
 
 
-const handleStyle = { background: '#555', top: "200" };
-
-
+const handleStyle = { marginTop: "12%", opacity: 0 };
 
 
 function PlanetNode({ data }: { data: PlanetNodeData }) {
 
     return (
         <>
-            <p>{data.label}</p>
-            <Planet data={data} src={image} />
+            <Center>
+                <h2>{data.label}</h2>
+            </Center>
+            <Center>
+                <Planet data={data} />
+            </Center>
         </>
     );
 }

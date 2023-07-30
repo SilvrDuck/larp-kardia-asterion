@@ -1,44 +1,36 @@
+from copy import deepcopy
 from dataclasses import asdict, dataclass
 from enum import Enum, auto
+from hmac import new
 from typing import List, Optional, Self, Tuple
 
-from serenity.common.persistable import Persistable
-from serenity.sonar.actors import (
+from serenity.sonar.definitions import (
     Asteroid,
+    CellModel,
     GameActor,
+    GridPosition,
     Launchable,
+    MapModel,
     Mine,
     Owner,
     Ship,
     Torpedo,
     Trail,
 )
-from serenity.sonar.exceptions import CannotBeAddedToCell
+from serenity.sonar.exceptions import CannotBeAddedToCell, ShipDestroyed
 
 
-@dataclass(frozen=True)
-class GridPosition:
-    x: int
-    y: int
+class Cell:
+    def __init__(self, cell: CellModel) -> None:
+        self._content = cell.content
+        self._has_asteroid = cell.has_asteroid
 
-
-class Cell(Persistable):
-    def __init__(self):
-        self._content = set()
-        self._has_asteroid = False
-
-    def to_dict(self) -> dict:
-        return {
-            "_content": [asdict(actor) for actor in self._content],
-            "_has_asteroid": self._has_asteroid,
-        }
-
-    @classmethod
-    def _prepare_from_dict(cls, data: dict) -> dict:
-        return {
-            "_content": [GameActor.from_dict(actor) for actor in data["_content"]],
-            "_has_asteroid": data["_has_asteroid"],
-        }
+    def to_model(self) -> CellModel:
+        pass
+        return CellModel(
+            content=[actor.model_dump() for actor in self._content],
+            has_asteroid=self._has_asteroid,
+        )
 
     def _has_trail_for(self, owner: Owner) -> bool:
         return any(isinstance(actor, Trail) and actor.owner == owner for actor in self._content)
@@ -50,7 +42,7 @@ class Cell(Persistable):
         for actor in self._content:
             if isinstance(actor, Ship) and actor.owner == owner:
                 return actor
-        raise None
+        return None
 
     def find_mine(self, mine_uid: str) -> Optional[Mine]:
         for actor in self._content:
@@ -65,9 +57,10 @@ class Cell(Persistable):
         match actor:
             case Asteroid():
                 self._has_asteroid = True
-            case Ship(name, hp, owner):
+            case Ship(owner=owner):
                 if self._has_trail_for(owner):
                     raise CannotBeAddedToCell()
+                self._content.add(actor)
             case Trail():
                 self._content.add(actor)
             case Mine():
@@ -99,51 +92,31 @@ class CellDistance:
     distance: int
 
 
-class Map(Persistable):
+class Map:
     def __init__(
         self,
-        width: int,
-        height: int,
-        player_ship: Ship,
-        npc_ship: Ship,
-        player_ship_position: GridPosition,
-        npc_ship_position: GridPosition,
-        asteroid_positions: List[GridPosition],
+        map: MapModel,
     ):
-        self.width = width
-        self.height = height
-        self._grid = [[Cell() for _ in range(width)] for _ in range(height)]
-        self._ship_positions = {
-            Owner.PLAYERS: player_ship_position,
-            Owner.NPCS: npc_ship_position,
-        }
+        self.width = map.width
+        self.height = map.height
 
-        for owner, ship in [(Owner.PLAYERS, player_ship), (Owner.NPCS, npc_ship)]:
+        self._grid = [[Cell(cell) for cell in row] for row in map.grid]
+
+        self._ship_positions = map.ship_positions
+
+        for owner, ship in [(Owner.PLAYERS, map.player_ship), (Owner.NPCS, map.npc_ship)]:
             ship_position = self._ship_positions[owner]
-            for ship_position in ship_position:
-                self._grid[ship_position.y][ship_position.x].add(ship)
+            self._grid[ship_position.y][ship_position.x].add(ship)
 
-        for asteroid in asteroid_positions:
-            self._grid[asteroid.y][asteroid.x] = Asteroid()
-
-    def to_dict(self) -> dict:
-        return {
-            "width": self.width,
-            "height": self.height,
-            "_grid": [[cell.to_dict() for cell in row] for row in self._grid],
-            "_ship_positions": {owner: asdict(position) for owner, position in self._ship_positions},
-        }
-
-    @classmethod
-    def _prepare_from_dict(cls, data: dict) -> dict:
-        return {
-            "width": data["width"],
-            "height": data["height"],
-            "_grid": [[Cell.from_dict(cell) for cell in row] for row in data["_grid"]],
-            "_ship_positions": {
-                Owner(owner): GridPosition.from_dict(position) for owner, position in data["_ship_positions"]
-            },
-        }
+    def to_model(self) -> MapModel:
+        return MapModel(
+            width=self.width,
+            height=self.height,
+            grid=[[cell.to_model() for cell in row] for row in self._grid],
+            player_ship=self.ship_for(Owner.PLAYERS),
+            npc_ship=self.ship_for(Owner.NPCS),
+            ship_positions=self._ship_positions,
+        )
 
     def get_asteroid_positions(self) -> List[GridPosition]:
         # search asteroid positions
@@ -160,20 +133,29 @@ class Map(Persistable):
         return ship_cell.ship_for(owner)
 
     def move_ship(self, owner: Owner, move_direction: Direction) -> None:
+        if move_direction not in self.available_moves_for_ship(owner):
+            raise ValueError(f"Invalid move direction: {move_direction}")
+
         ship_position = self._ship_positions[owner]
         current_cell = self._grid[ship_position.y][ship_position.x]
         ship = current_cell.ship_for(owner)
         current_cell.remove(ship)
 
-        match move_direction:
+        new_pos = self._position_at(ship_position, move_direction)
+
+        self._grid[new_pos.y][new_pos.x].add(ship)
+        self._ship_positions[owner] = new_pos
+
+    def _position_at(self, position: GridPosition, direction: Direction) -> GridPosition:
+        match direction:
             case Direction.North:
-                self._grid[ship_position.y - 1][ship_position.x].add(ship)
+                return GridPosition(position.x, position.y - 1)
             case Direction.South:
-                self._grid[ship_position.y + 1][ship_position.x].add(ship)
+                return GridPosition(position.x, position.y + 1)
             case Direction.East:
-                self._grid[ship_position.y][ship_position.x + 1].add(ship)
+                return GridPosition(position.x + 1, position.y)
             case Direction.West:
-                self._grid[ship_position.y][ship_position.x - 1].add(ship)
+                return GridPosition(position.x - 1, position.y)
 
     def available_moves_for_ship(self, owner: Owner) -> List[Direction]:
         ship_position = self._ship_positions[owner]
@@ -197,9 +179,11 @@ class Map(Persistable):
             if self._can_be_added_to_cell(ship, cell):
                 available_moves.append(direction)
 
+        return available_moves
+
     def _can_be_added_to_cell(self, actor: GameActor, cell: Cell) -> bool:
         try:
-            test_cell = cell.copy()
+            test_cell = deepcopy(cell)
             test_cell.add(actor)
             return True
         except CannotBeAddedToCell:

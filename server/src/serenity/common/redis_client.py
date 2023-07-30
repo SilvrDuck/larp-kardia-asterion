@@ -43,29 +43,34 @@ class RedisClient:
         await self._client.set(key, orjson.dumps(value))  # pylint: disable=maybe-no-member
 
     async def publish(self, message: RedisMessage) -> None:
-        logging.debug("REDIS: Publishing, %s", str(message)[:70])
+        # logging.debug("REDIS: Publishing, %s", str(message)[:200])
         await self._client.publish(
-            message.topic.value, orjson.dumps(message.model_dump())  # pylint: disable=maybe-no-member
+            message.topic.value, orjson.dumps(message.model_dump(mode="json"))  # pylint: disable=maybe-no-member
         )
 
-    async def subscribtion_iterator(self, topic: Topic) -> RedisMessage:
+    async def subscription_iterator(self, topic: Topic) -> RedisMessage:
         async with self._client.pubsub() as pubsub:
             await pubsub.subscribe(topic.value)
             while True:
-                message = await pubsub.get_message(ignore_subscribe_messages=True)
+                try:
+                    message = await pubsub.get_message(ignore_subscribe_messages=True)
 
-                if message is not None:
-                    logging.debug("REDIS: Subscription iterator tick, %s, %s", topic, str(message)[:70])
-                    message = RedisMessage(**orjson.loads(message["data"]))  # pylint: disable=maybe-no-member
+                    if message is not None:
+                        logging.debug("REDIS: Subscription iterator tick, %s, %s", topic, str(message)[:200])
+                        message = RedisMessage(**orjson.loads(message["data"]))  # pylint: disable=maybe-no-member
 
-                    match message:
-                        case RedisMessage(topic=topic, type=MessageType.SYSTEM, data=RedisSignal.SHUTDOWN):
-                            return
-                        case _:
-                            yield message
+                        match message:
+                            case RedisMessage(topic=topic, type=MessageType.SYSTEM, data=RedisSignal.SHUTDOWN):
+                                return
+                            case _:
+                                yield message
+                except asyncio.CancelledError as err:
+                    raise err
+                except Exception as err:
+                    logging.error("REDIS: Error while iterating over subscription: %s", err)
 
     def get_lock(self, key: str) -> Lock:
-        return self._client.lock(f"__lock__{hash(key)}")
+        return self._client.lock(f"__lock__{key}", timeout=30)
 
     async def release_all_locks(self) -> None:
         await self._client.delete("__lock__*")

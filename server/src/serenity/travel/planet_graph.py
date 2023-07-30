@@ -3,7 +3,7 @@ import networkx as nx
 import orjson
 from serenity.common.config import settings
 
-from serenity.common.definitions import PlanetaryConfig
+from serenity.travel.definitions import PlanetaryConfig
 
 
 class PlanetGraph(nx.DiGraph):

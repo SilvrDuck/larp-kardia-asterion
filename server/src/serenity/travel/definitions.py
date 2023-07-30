@@ -1,9 +1,41 @@
+from pydantic import Field
 from datetime import datetime
 from enum import Enum
+from typing import List
 
 from pydantic import BaseModel
-from serenity.common.definitions import Jsonable, StatusBaseModel, PlanetaryConfig, ServiceType
-from serenity.travel.planet_graph import PlanetGraph
+from serenity.common.definitions import StatusBaseModel, ServiceType
+
+
+class Step(BaseModel):
+    max_step_minutes: float = Field(..., ge=0.0)
+
+
+class PlanetNode(Step):
+    id: str
+    name: str
+    visited: bool
+    description: str
+    min_step_minutes: float = Field(..., ge=0)
+    max_step_minutes: float = Field(..., ge=0)
+    position_x: float
+    position_y: float
+    period: str
+    satellites: str
+    radius: str
+
+
+class PlanetLink(Step):
+    source: str
+    target: str
+    max_step_minutes: float = Field(..., ge=0)
+
+
+class PlanetaryConfig(BaseModel):
+    directed: bool = True
+    multigraph: bool = False
+    nodes: List[PlanetNode]
+    links: List[PlanetLink]
 
 
 class ShipState(str, Enum):
