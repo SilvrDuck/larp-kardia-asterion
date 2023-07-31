@@ -2,12 +2,12 @@
     "nodes": [
         {
             "id": "0a",
-            "name": " ",
+            "name": "Arcalis",
             "visited": false,
             "radius": "6000 km",
-            "period": " jours",
+            "period": "3 jours",
             "satellites": "2",
-            "description": "La descpritponion",
+            "description": "",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
             "position_x": 0,
@@ -23,8 +23,8 @@
             "description": "Thalaris IX est une planlète au climat doux. Une grosse partie de son économie repose sur l'export de ressources agricoles",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 300,
-            "position_y": -200
+            "position_x": -104,
+            "position_y": -396
         },
         {
             "id": "1b",
@@ -36,8 +36,8 @@
             "description": "Ancienne planète prospère. Complètement brûlée par les vents solaire suite à la perte de leur ceinture magnétique dû à un changements d'activités géologiques.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 500,
-            "position_y": -30
+            "position_x": 308,
+            "position_y": -288
         },
         {
             "id": "1c",
@@ -49,8 +49,8 @@
             "description": "Planète au champ magnétique anormalement fort. Cela pourrait créer des dysfonctionnement sur les outils de mesure de mauvaise qualité.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 300,
-            "position_y": 350
+            "position_x": 424,
+            "position_y": 194
         },
         {
             "id": "2a",
@@ -62,8 +62,8 @@
             "description": "Zone de contrebande. Espace hors de la juridiction de l'empire : pas de taxes, pas de sécurité.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 750,
-            "position_y": -250
+            "position_x": 488,
+            "position_y": -832
         },
         {
             "id": "2b",
@@ -75,8 +75,8 @@
             "description": "Planète majoritairement recouverte d'eau. Ses rares terres émergées servent de bagne pour l'empire.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 1000,
-            "position_y": 40
+            "position_x": 614.445368271674,
+            "position_y": -602.7874679603523
         },
         {
             "id": "2c",
@@ -88,8 +88,8 @@
             "description": "Ancienne zone technologique florissante, suite à des coupes budgétaire cette planète ne sert plus qu'à produire des outils tel que des manivelles ou des presse-purées",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 820,
-            "position_y": 360
+            "position_x": 1094.0396445441852,
+            "position_y": -423.62193106938366
         },
         {
             "id": "3a",
@@ -101,8 +101,8 @@
             "description": "Planète au climat tropical. Son faible taux de minerais rare fait que très peu d'industries se sont intéressées à elle. Les autochtones (les Saari) ont donc été très peu influencé par la culture de l'empire.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 1200,
-            "position_y": -200
+            "position_x": 1326,
+            "position_y": -992
         },
         {
             "id": "3b",
@@ -114,8 +114,8 @@
             "description": "Planète au climat doux, c'est l'endroit parfait pour y acheter une maison de vacance. C'est du reste ce que font beaucoup de citoyens de l'empire, bien que la fiscalité ne soit pas idéale.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 1500,
-            "position_y": 60
+            "position_x": 949.0226237637878,
+            "position_y": -1193.0999851710146
         },
         {
             "id": "3c",
@@ -127,8 +127,8 @@
             "description": "Réserve naturelle de 483 184 364 kilomètres carrés. Véritable sanctuaire pour des espèces tant végétales que animales très rares et menacées",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 1400,
-            "position_y": 400
+            "position_x": 1556,
+            "position_y": -718
         },
         {
             "id": "4a",
@@ -140,8 +140,8 @@
             "description": "Planète propriété de la société NebulaCargo. Depuis la réglementation ISO 14040_B35 sur le fret spatial, la planète a été abandonnée et ne sert plus qu'à stocker des produits défectueux.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 1720,
-            "position_y": -150
+            "position_x": 1636,
+            "position_y": -1044
         },
         {
             "id": "4b",
@@ -153,8 +153,8 @@
             "description": "Avant-poste avancé de l'empire. Cette planète sert de centre administratif avancé pour la bordure extérieure.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 2000,
-            "position_y": 110
+            "position_x": 2004,
+            "position_y": -1557.8000000000004
         },
         {
             "id": "4c",
@@ -166,8 +166,8 @@
             "description": "Mini-planète. Son seul avantage est que l’atmosphère y est respirable, bien que sentant fortement le soufre. Pour cette raison, peu de gens y vivent.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 1790,
-            "position_y": 550
+            "position_x": 1848,
+            "position_y": -786
         },
         {
             "id": "5a",
@@ -179,8 +179,8 @@
             "description": "Depuis maintenant une 50aine d'année, cette planète est le théâtre d'incroyables courses de vaisseau, accueillant les circuits les plus prestigieux, mais aussi des courses juniors.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 2520,
-            "position_y": -220
+            "position_x": 2552,
+            "position_y": -1300
         },
         {
             "id": "5b",
@@ -192,8 +192,8 @@
             "description": "Planète-media. Le seul astro-port ouvert au public est proche d'un plateau télévision, pour accueille le public lors d'émissions de TÉLÉréalité ou jeux concours.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 2500,
-            "position_y": 100
+            "position_x": 2408,
+            "position_y": -882
         },
         {
             "id": "5c",
@@ -205,8 +205,8 @@
             "description": "le noyau de cette planète est extrêmement petit, mais une gigantesque couche d'eau la recouvre intégralement. Les villes flottantes sont généralement des endroits dédiés au bien-être, tels que des SPA, sauna ou maison de repos.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 2340,
-            "position_y": 340
+            "position_x": 2212,
+            "position_y": -572
         },
         {
             "id": "6a",
@@ -218,8 +218,8 @@
             "description": "Le puis de l’empire. Recouverte à plus de 90% d’eau douce, l’empire exporte cette eau pure partout à travers toute la galaxie. Depuis le début de son exploitation il y a 190 ans, la planète a perdue 8% de son rayon.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 2790,
-            "position_y": -310
+            "position_x": 3294,
+            "position_y": -966
         },
         {
             "id": "6b",
@@ -231,8 +231,8 @@
             "description": "Planète dortoire de l’empire. Les riches habitent sur Galaxia-Quintus, les pauvres sur Aetheron-4X. La planète étant largement recouverte d’eau, les gens vivent dans des complexes sous-marins.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 3000,
-            "position_y": 0
+            "position_x": 2854,
+            "position_y": -748
         },
         {
             "id": "6c",
@@ -244,8 +244,8 @@
             "description": "Galaxia-Quintus est considérée comme la banlieue chic de l’empire. Les gens les plus aisés ont un logement ici et vont travailler sur Ignatia-Delta.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 2850,
-            "position_y": 320
+            "position_x": 2870,
+            "position_y": -354
         },
         {
             "id": "7a",
@@ -257,8 +257,8 @@
             "description": "Capitale de l’empire. Le diamètre de la planète a été retravaillé, tout comme sa distance par rapport au soleil, pour arriver à des nombres plus harmonieux.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 3600,
-            "position_y": -20
+            "position_x": 4024,
+            "position_y": -948
         },
         {
             "id": "7b",
@@ -270,8 +270,8 @@
             "description": "Jadis planète prospère, elle a été la victime d’une surexploitation et d’une sur-industrialisation. Cet endroit est le berceau du syndicalisme intergalactique.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 3350,
-            "position_y": -200
+            "position_x": 3922,
+            "position_y": -480
         },
         {
             "id": "7c",
@@ -283,8 +283,8 @@
             "description": "Berceau de L'université de Jol-Naar Cygnus-Nox est un passage obligatoire pour les gens ayant des inspirations scientifiques. Cependant, il ne faut pas négliger la forte tradition de l'artisanat que l’on retrouve beaucoup au nord.",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 3400,
-            "position_y": 300
+            "position_x": 4104,
+            "position_y": -160
         },
         {
             "id": "7d",
@@ -296,8 +296,8 @@
             "description": "ĦǁƏƢ Þľƪêñ₮ê ¢†ɎŁṽë Ć ƺǪɎƒǂ  ŁϑƔŴ ǶǪɎ Î₦₣¤_Ɽê₴Ø  ƏƢ₦₦ƒåÑ₡ë_ƒǂ ©▒▒ƒ▒▒√€",
             "min_step_minutes": 0.05,
             "max_step_minutes": 45,
-            "position_x": 3520,
-            "position_y": 500
+            "position_x": 3288,
+            "position_y": -4
         }
     ],
     "links": [

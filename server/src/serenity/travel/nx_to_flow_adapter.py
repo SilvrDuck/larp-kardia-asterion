@@ -108,7 +108,7 @@ class NxToFlowAdapter(Adapter[TravelState]):
                 },
                 "position": {"x": node["position_x"], "y": node["position_y"]},
                 "hidden": not cls._visible_planet(graph, node, current_id),
-                "draggable": False,
+                "draggable": True,
                 "selectable": is_landed and cls._is_next_step(graph, node["id"], current_id),
                 "deletable": False,
             }

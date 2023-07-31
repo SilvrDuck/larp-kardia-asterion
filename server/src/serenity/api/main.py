@@ -69,6 +69,11 @@ async def dashboard(websocket: WebSocket) -> None:
 
     print("TOREMOVE TOREMOVE TEROMEVE")
     await services[ServiceType.TRAVEL].resume()
+    print("TOREMOVE TOREMOVE TEROMEVE")
+
+    await services[ServiceType.TRAVEL].broadcast_status()
+    await services[ServiceType.SONAR].broadcast_status()
+    await websockets_manager.forward_socket_messages(websocket)
     await redis.publish(
         RedisMessage(
             topic=Topic.COMMAND,
@@ -76,11 +81,6 @@ async def dashboard(websocket: WebSocket) -> None:
             data={"map": "alpha", "ship": Ship(name="Yow", hp=3, owner="npcs")},
         )
     )
-    print("TOREMOVE TOREMOVE TEROMEVE")
-
-    await services[ServiceType.TRAVEL].broadcast_status()
-    await services[ServiceType.SONAR].broadcast_status()
-    await websockets_manager.forward_socket_messages(websocket)
 
 
 @app.get("/game_state")
