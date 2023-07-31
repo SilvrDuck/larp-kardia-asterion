@@ -1,7 +1,8 @@
 import { Box, Center, Flex, Grid, GridItem, HStack, VStack, Image, keyframes } from '@chakra-ui/react'
 import { SonarContext, Map } from '../lib/sonarProvider'
 import { useContext, useEffect, useState } from 'react'
-import { pseudoRandomRotationString } from './planet'
+import { pseudoRandomRotationString, rotateAnimation } from './planet'
+import { rotate } from 'fp-ts/lib/ReadonlyNonEmptyArray'
 
 const gridGap = 1.5
 
@@ -11,6 +12,15 @@ function idxToCol(i: number) {
 
 function idxToRow(i: number) {
     return i + 1
+}
+
+export function rowToIdx(row: string) {
+    const upper = row.toUpperCase()
+    return upper.charCodeAt(0) - 65
+}
+
+export function colToIdx(col: number) {
+    return col - 1
 }
 
 function pseudoRandom(x, y) {
@@ -23,39 +33,66 @@ function pseudoRandom(x, y) {
     return Math.floor((rand - Math.floor(rand)) * (high - low) + low)
 }
 
-function imageForCell(map, x, y) {
+function playerTint(owner: "players" | "npcs", brightness: number = 100) {
+    const rotation = owner === "players" ? "0" : "100"
+    return { filter: `sepia(50%) saturate(200%) brightness(${brightness}%) hue-rotate(${rotation}deg)` }
+}
+
+const dot = <Image src="/assets/sonar/dot.png" />
+
+function imageIfInCell(cell, hidden, type: "ship" | "trail", brightness: number = 100, animation = {}) {
+    const maybeShip = cell.content.find((e) => e.type === type)
+    if (maybeShip !== undefined && maybeShip.owner !== hidden) {
+        return <Image src={`/assets/sonar/${type}.png`}
+            animation={animation}
+            style={playerTint(maybeShip.owner, brightness)} />
+    }
+    return null
+}
+
+
+function imageForCell(map: Map, x: number, y: number, hidden: "players" | "npcs") {
     const cell = map.grid[x][y]
 
     if (cell.has_asteroid) {
         const randAstro = pseudoRandom(x, y)
         const animate = pseudoRandomRotationString((x + y).toString())
-        return <Image src={`src/assets/sonar/asteroid${randAstro}.png`} animation={animate}
-            style={{ filter: "sepia(70%) saturate(100%) brightness(90%) hue-rotate(180deg)" }} />
-    }
-    if (cell.content.length > 0) {
-        return <Image src="src/assets/sonar/ship.png" />
+        return <Image src={`/assets/sonar/asteroid${randAstro}.png`} animation={animate}
+            style={{ filter: `sepia(70%) saturate(100%) brightness(90%) hue-rotate(180deg)` }} />
     }
 
-    return <Image src="src/assets/sonar/dot.png" />
+    const shipImage = imageIfInCell(cell, hidden, "ship", 80)
+    if (shipImage !== null) {
+
+        return shipImage
+    }
+
+    const trailAnimation = rotateAnimation("cw", 10)
+    const trailImage = imageIfInCell(cell, hidden, "trail", 100, trailAnimation)
+    if (trailImage !== null) {
+        return trailImage
+    }
+
+    return dot
 }
 
-function Cell({ map, row, col }: { map: Map }) {
+function Cell({ map, row, col, hidden }: { map: Map }) {
 
-    const image = imageForCell(map, row, col)
+    const image = imageForCell(map, row, col, hidden)
 
     return (
-        <Box color="white" height="100%" width="100%" >
+        <Box height="100%" width="100%" >
             {image}
         </Box>
     )
 }
 
-function Row({ map, row }) {
+function Row({ map, row, hidden }) {
 
     return (
         <Flex height="100%" width="100%" direction={"row"} gap={gridGap} >
             {[...Array(map.width).keys()].map((index) => (
-                <Cell map={map} row={row} col={index} />
+                <Cell map={map} row={row} col={index} hidden={hidden} />
             ))}
         </Flex>
     )
@@ -80,9 +117,11 @@ function Header({ dim, direction, mapFunc, area }) {
 
 
 
-export function BattleGrid() {
+export function BattleGrid({ controled }: { controled: "players" | "npcs" }) {
 
     const { map } = useContext(SonarContext)
+
+    const hidden = controled === "players" ? "npcs" : "players"
 
     if (map === null) {
         return (
@@ -95,51 +134,52 @@ export function BattleGrid() {
     }
 
     return (
-
-        <Flex
-            justify="center"
-            align="center"
-            height="100%"
-            width="90vh"
-            direction="column"
-            margin="auto"
-        >
-            <Grid
-                templateAreas={
-                    `"unk col col"
-                    "row grid grid"`}
-                gridTemplateRows={'3em 1fr'}
-                gridTemplateColumns={'3em 1fr'}
-                gap={gridGap}
-                color='blackAlpha.700'
-                fontWeight='bold'
-                pl="1.5em"
-                pr="1.5em"
-                pb="1.5em"
+        <>
+            <Box>{JSON.stringify(map.npc_ship)}</Box>
+            <Flex
+                justify="center"
+                align="center"
                 height="100%"
-                width="100%"
+                width="90vh"
+                direction="column"
+                margin="auto"
             >
-                <Header dim={map.width} direction={"row"} mapFunc={idxToCol} area={"col"} />
-                <Header dim={map.height} direction={"column"} mapFunc={idxToRow} area={"row"} />
-                <GridItem area={'grid'}>
-                    <Flex
-                        align="center"
-                        justify="center"
-                        width="100%"
-                        height="100%"
-                        margin="auto"
-                        grow="1"
-                        direction="column"
-                        gap={gridGap}
-                    >
-                        {[...Array(map.height).keys()].map((index) => (
-                            <Row map={map} row={index} />
-                        ))}
+                <Grid
+                    templateAreas={
+                        `"unk col col"
+                    "row grid grid"`}
+                    gridTemplateRows={'3em 1fr'}
+                    gridTemplateColumns={'3em 1fr'}
+                    gap={gridGap}
+                    color='blackAlpha.700'
+                    fontWeight='bold'
+                    pl="1.5em"
+                    pr="1.5em"
+                    pb="1.5em"
+                    height="100%"
+                    width="100%"
+                >
+                    <Header dim={map.width} direction={"row"} mapFunc={idxToCol} area={"col"} />
+                    <Header dim={map.height} direction={"column"} mapFunc={idxToRow} area={"row"} />
+                    <GridItem area={'grid'}>
+                        <Flex
+                            align="center"
+                            justify="center"
+                            width="100%"
+                            height="100%"
+                            margin="auto"
+                            grow="1"
+                            direction="column"
+                            gap={gridGap}
+                        >
+                            {[...Array(map.height).keys()].map((index) => (
+                                <Row map={map} row={index} hidden={hidden} />
+                            ))}
 
-                    </Flex>
-                </GridItem>
-            </Grid>
-        </Flex>
-
+                        </Flex>
+                    </GridItem>
+                </Grid>
+            </Flex>
+        </>
     )
 }

@@ -17,6 +17,7 @@ from serenity.common.redis_client import RedisMessage
 from serenity.common.service import Service
 from serenity.sonar.definitions import Asteroid, CellModel, Mine, Ship, Torpedo
 from serenity.sonar.definitions import MapModel, SonarConfig, SonarState
+from serenity.sonar.exceptions import ShipDestroyed
 from serenity.sonar.logic import Direction, GridPosition, Map
 
 from serenity.common.config import settings
@@ -99,7 +100,11 @@ class SonarService(Service[SonarState, SonarConfig]):
     async def execute(self, action: Callable, *args, **kwargs) -> None:
         """Exectutes an action with lock and brodcasts the state afterwards."""
         async with self.redis.get_lock(__file__):
-            await action(*args, **kwargs)
+            try:
+                await action(*args, **kwargs)
+            except ShipDestroyed as err:
+                logging.info("SONAR: Ship %s destroyed, ending battle.", err.ship.name)
+                await self.end_battle()
             await self._broadcast_state()
 
     def _get_asteroid_positions(self, map_file_name: str) -> List[GridPosition]:
@@ -165,11 +170,11 @@ class SonarService(Service[SonarState, SonarConfig]):
     async def launch_torpedo(self, owner: Owner, target: GridPosition) -> None:
         torpedo = Torpedo(
             owner=owner,
-            damage=settings.sonar_torpedo_damage,
-            reach=settings.sonar_torpedo_reach,
-            radius=settings.sonar_torpedo_radius,
+            damage=self._config.torpedo_damage,
+            reach=self._config.torpedo_reach,
+            radius=self._config.torpedo_radius,
         )
-        await self._resolve_action(lambda map: map.launch_torpedo(torpedo, target))
+        self._map.launch_torpedo(torpedo, target)
 
     async def place_mine(self, owner: Owner, target: GridPosition) -> None:
         mine = Mine(

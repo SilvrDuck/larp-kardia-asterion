@@ -1,11 +1,11 @@
-import bg from "@assets/backgrounds/bg_battle.png";
+import bg from "/assets/backgrounds/bg_battle.png";
 import { BattleGrid } from "../components/battleGrid";
 import { HStack, Spacer } from "@chakra-ui/react";
 import { BattleControl } from "../components/battleControl";
 import { memo } from "react";
 
 
-export const BattleMap = memo(function BattleMap() {
+export const BattleMap = memo(function BattleMap({ controled }: { controled: "players" | "npcs" }) {
 
 
     document.body.style.backgroundImage = `url(${bg})`
@@ -20,10 +20,10 @@ export const BattleMap = memo(function BattleMap() {
 
     return (
         <>
-            <HStack height="100%" width="100%" >
+            <HStack height="100%" width="100%" mt="2em" >
                 <Spacer />
-                <BattleGrid />
-                <BattleControl />
+                <BattleGrid controled={controled} />
+                <BattleControl controled={controled} />
                 <Spacer />
             </HStack>
         </>

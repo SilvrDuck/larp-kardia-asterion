@@ -2,7 +2,7 @@ from copy import deepcopy
 from dataclasses import asdict, dataclass
 from enum import Enum, auto
 from hmac import new
-from typing import List, Optional, Self, Tuple
+from typing import List, Optional, Self, Set, Tuple
 
 from serenity.sonar.definitions import (
     Asteroid,
@@ -26,9 +26,8 @@ class Cell:
         self._has_asteroid = cell.has_asteroid
 
     def to_model(self) -> CellModel:
-        pass
         return CellModel(
-            content=[actor.model_dump() for actor in self._content],
+            content=[actor for actor in self._content],
             has_asteroid=self._has_asteroid,
         )
 
@@ -65,6 +64,8 @@ class Cell:
                 self._content.add(actor)
             case Mine():
                 self._content.add(actor)
+            case Torpedo():
+                pass  # Do not raise
             case _:
                 raise ValueError(f"Unknown actor type: {actor}")
 
@@ -74,7 +75,9 @@ class Cell:
     def apply_damage(self, damage: int):
         for actor in self._content:
             try:
-                actor = actor.apply_damage(damage)
+                new_actor = actor.apply_damage(damage)
+                self._content.remove(actor)
+                self._content.add(new_actor)
             except AttributeError:
                 pass
 
@@ -90,6 +93,7 @@ class Direction(str, Enum):
 class CellDistance:
     cell: Cell
     distance: int
+    position: GridPosition
 
 
 class Map:
@@ -139,7 +143,9 @@ class Map:
         ship_position = self._ship_positions[owner]
         current_cell = self._grid[ship_position.y][ship_position.x]
         ship = current_cell.ship_for(owner)
+
         current_cell.remove(ship)
+        current_cell.add(Trail(owner=owner))
 
         new_pos = self._position_at(ship_position, move_direction)
 
@@ -189,24 +195,25 @@ class Map:
         except CannotBeAddedToCell:
             return False
 
-    def possible_object_launch(self, launchable: Launchable) -> List[GridPosition]:
+    def possible_object_launch(self, launchable: Launchable) -> Set[GridPosition]:
         ship_position = self._ship_positions[launchable.owner]
 
         in_radius = self._cells_in_radius(ship_position, launchable.reach)
 
-        possible_positions = []
+        possible_positions = set()
         for cell_distance in in_radius:
             if self._can_be_added_to_cell(launchable, cell_distance.cell):
-                possible_positions.append(cell_distance.cell.position)
+                possible_positions.add(cell_distance.position)
 
         return possible_positions
 
     def launch_torpedo(self, torpedo: Torpedo, target: GridPosition) -> None:
-        assert self.possible_object_launch(torpedo).contains(target)
+        if target not in self.possible_object_launch(torpedo):
+            raise ValueError(f"Invalid target position: {target}")
         self._apply_damage_with_falloff(torpedo, target)
 
     def place_mine(self, mine: Mine, position: GridPosition) -> str:
-        assert self.possible_object_launch(mine).contains(position)
+        assert position in self.possible_object_launch(mine)
         self._grid[position.y][position.x].add(mine)
         return mine.uid
 
@@ -239,6 +246,6 @@ class Map:
 
                 cell = self._grid[y][x]
                 distance = abs(position.x - x) + abs(position.y - y)
-                cell_distances.append(CellDistance(cell, distance))
+                cell_distances.append(CellDistance(cell, distance, GridPosition(x, y)))
 
         return cell_distances

@@ -20,6 +20,7 @@ import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react'
 import image from '@assets/plan_2.png';
 import { getPlanetImage } from '../lib/planetImage';
 import { get } from 'fp-ts/lib/FromState';
+import { Literal } from 'runtypes';
 
 
 export type PlanetNodeData = {
@@ -122,15 +123,21 @@ export function pseudoRandomRotationString(label: string) {
     const upper = 80
     const speed = lower + (norm * (upper - lower))
 
+    const direction = label.charCodeAt(11 % label.length) % 2 == 0 ? "cw" : "ccw"
 
-    const sign = label.charCodeAt(11 % label.length) % 2 == 0 ? "" : "-"
+    return rotateAnimation(direction, speed)
+
+}
+
+export function rotateAnimation(direction: "cw" | "ccw", speed: number) {
+    const sign = direction == "cw" ? "" : "-"
+
     const animationKeyframes = keyframes`
     100% { transform: rotate(${sign}360deg); }
     `;
 
     return `${animationKeyframes} ${speed}s infinite linear`
 }
-
 
 
 function PlanetButton({ data }: { data: PlanetNodeData }) {

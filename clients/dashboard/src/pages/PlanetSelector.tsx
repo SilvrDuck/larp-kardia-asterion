@@ -7,7 +7,7 @@ import { WebsocketContext } from "../lib/websocketProvider";
 import { PlanetDefault, PlanetInput, PlanetOutput } from "../components/planetNode";
 import { PlanetGraph } from "../components/planetGraph";
 import { PlanetCounter } from "../components/planetCounter";
-import bg from "@assets/backgrounds/bg_graph.png";
+import bg from "/assets/backgrounds/bg_graph.png";
 
 
 
@@ -25,9 +25,6 @@ export function PlanetSelector() {
 
     return (
         <>
-            <VStack align="stretch" pl="1.5em" pr="1.5em"  >
-                <PlanetCounter />
-            </VStack>
             <PlanetGraph />
         </>
     )

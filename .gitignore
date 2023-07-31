@@ -10,6 +10,7 @@ test_queries.http
 *.so
 
 # Distribution / packaging
+server/.vscode
 .Python
 build/
 develop-eggs/

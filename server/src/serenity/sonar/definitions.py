@@ -22,6 +22,7 @@ class GridPosition:
 
 class GameActor(BaseModel, ABC):
     type: str
+    owner: Optional[Owner] = None
 
     class Config:
         frozen = True
@@ -29,26 +30,20 @@ class GameActor(BaseModel, ABC):
 
 class Trail(GameActor):
     type: str = "trail"
-    owner: Owner
 
 
 class Ship(GameActor):
     type: str = "ship"
     name: str
     hp: int
-    owner: Owner
-
-    def __init__(self, **data):
-        if data["hp"] <= 0:
-            raise ShipDestroyed(self)
-        super().__init__(**data)
 
     def apply_damage(self, damage: int) -> Self:
-        return Ship(type=self.name, hp=self.hp - damage, owner=self.owner)
+        if self.hp - damage <= 0:
+            raise ShipDestroyed(self)
+        return Ship(name=self.name, hp=self.hp - damage, owner=self.owner)
 
 
 class Launchable(GameActor):
-    owner: Owner
     damage: int
     reach: int
     radius: int

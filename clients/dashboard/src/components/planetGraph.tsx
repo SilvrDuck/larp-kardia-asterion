@@ -60,10 +60,6 @@ export function PlanetGraph() {
         return <p>Chargement...</p>
     }
 
-    useEffect(() => {
-        console.log(nodes)
-    }, [nodes])
-
     return (
         <ReactFlow
             nodes={nodes}

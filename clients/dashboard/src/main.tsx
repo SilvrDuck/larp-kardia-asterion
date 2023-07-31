@@ -12,6 +12,7 @@ import { WebsocketProvider } from './lib/websocketProvider.tsx';
 import { TravelProvider } from './lib/travelProvider.tsx'
 import { theme } from './theme.tsx'
 import { SonarProvider } from './lib/sonarProvider.tsx';
+import { Control } from './pages/Control.tsx';
 
 
 const router = createBrowserRouter([
@@ -19,8 +20,8 @@ const router = createBrowserRouter([
     path: "/", element: <App />,
     errorElement: <p><b>[HORS-JEU]</b> Il y à un problème avec le logiciel. Informez un·e PNJ (idéalement Thibault).</p>,
     children: [
-      { path: "captain", element: <Captain /> },
-
+      { path: "captain/:owner", element: <Captain /> },
+      { path: "control/:owner", element: <Control /> },
     ]
   },
 ])
