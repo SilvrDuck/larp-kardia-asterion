@@ -11,6 +11,7 @@ test_queries.http
 
 # Distribution / packaging
 server/.vscode
+*.code-workspace
 .Python
 build/
 develop-eggs/

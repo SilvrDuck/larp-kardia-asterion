@@ -2,10 +2,10 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from datetime import datetime
-from enum import Enum, auto
-from typing import Any, Dict, List, Tuple
+from enum import Enum
+from typing import Any, Dict, List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 Jsonable = None | int | str | bool | List[Any] | Dict[str, Any] | datetime | Enum
@@ -41,6 +41,9 @@ class MessageType(str, Enum):
 class ServiceType(str, Enum):
     SONAR = "sonar"
     TRAVEL = "travel"
+    LIGHT = "light"
+    SWITCH = "switch"
+    SOUND = "sound"
 
 
 class Owner(str, Enum):
@@ -53,3 +56,9 @@ class StatusBaseModel(BaseModel, ABC):
     @abstractmethod
     def to_key() -> ServiceType:
         pass
+
+class Direction(str, Enum):
+    North = "north"
+    South = "south"
+    East = "east"
+    West = "west"

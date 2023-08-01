@@ -5,7 +5,7 @@ import { BattleControl } from "../components/battleControl";
 import { memo } from "react";
 
 
-export const BattleMap = memo(function BattleMap({ controled }: { controled: "players" | "npcs" }) {
+export const BattleMap = memo(function BattleMap() {
 
 
     document.body.style.backgroundImage = `url(${bg})`
@@ -22,8 +22,7 @@ export const BattleMap = memo(function BattleMap({ controled }: { controled: "pl
         <>
             <HStack height="100%" width="100%" mt="2em" >
                 <Spacer />
-                <BattleGrid controled={controled} />
-                <BattleControl controled={controled} />
+                <BattleGrid />
                 <Spacer />
             </HStack>
         </>

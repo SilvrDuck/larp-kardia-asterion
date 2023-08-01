@@ -78,7 +78,7 @@ class SonarService(Service[SonarState, SonarConfig]):
                         case RedisMessage(type=MessageType.START_BATTLE, data=data):
                             await self.execute(self.start_battle, data["map"], Ship(**data["ship"]))
                         case _:
-                            raise ValueError("Can only start battle if not in battle.")
+                            raise ValueError(f"Not in battle, cannot resolve: {message}.")
                 else:
                     match message:
                         case RedisMessage(type=MessageType.END_BATTLE):
@@ -93,7 +93,10 @@ class SonarService(Service[SonarState, SonarConfig]):
                             await self.execute(self.place_mine, Owner(data["owner"]), GridPosition(**data["target"]))
                         case RedisMessage(type=MessageType.REPAIR, data=data):
                             await self.execute(self.repair, Owner(**data))
-
+                        case RedisMessage(type=MessageType.START_BATTLE):
+                            raise ValueError("Can only start battle if not in battle.")
+                        case _:
+                            raise ValueError(f"Unknown message type: {message.type}.")
             except Exception as err:
                 logging.error("SONAR: Error while processing command: %s\n%s", message, err)
 
@@ -156,6 +159,7 @@ class SonarService(Service[SonarState, SonarConfig]):
                 Owner.PLAYERS: starting_position,
                 Owner.NPCS: other_position,
             },
+            mine_positions={},
         )
 
         return Map(map_model)
@@ -183,7 +187,7 @@ class SonarService(Service[SonarState, SonarConfig]):
             reach=settings.sonar_mine_reach,
             radius=settings.sonar_mine_radius,
         )
-        await self._resolve_action(lambda map: map.place_mine(mine, target))
+        self._map.place_mine(mine, target)
 
     async def repair(self, owner: Owner) -> None:
         raise NotImplementedError()

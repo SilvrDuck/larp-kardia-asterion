@@ -1,8 +1,8 @@
 from copy import deepcopy
 from dataclasses import asdict, dataclass
 from enum import Enum, auto
-from hmac import new
-from typing import List, Optional, Self, Set, Tuple
+from typing import Dict, List, Optional, Self, Set, Tuple
+from serenity.common.definitions import Direction
 
 from serenity.sonar.definitions import (
     Asteroid,
@@ -82,13 +82,6 @@ class Cell:
                 pass
 
 
-class Direction(str, Enum):
-    North = "north"
-    South = "south"
-    East = "east"
-    West = "west"
-
-
 @dataclass(frozen=True)
 class CellDistance:
     cell: Cell
@@ -106,6 +99,8 @@ class Map:
 
         self._grid = [[Cell(cell) for cell in row] for row in map.grid]
 
+        self._mine_positions: Dict[str, GridPosition] = {}
+
         self._ship_positions = map.ship_positions
 
         for owner, ship in [(Owner.PLAYERS, map.player_ship), (Owner.NPCS, map.npc_ship)]:
@@ -120,6 +115,7 @@ class Map:
             player_ship=self.ship_for(Owner.PLAYERS),
             npc_ship=self.ship_for(Owner.NPCS),
             ship_positions=self._ship_positions,
+            mine_positions=self._mine_positions,
         )
 
     def get_asteroid_positions(self) -> List[GridPosition]:
@@ -212,17 +208,17 @@ class Map:
             raise ValueError(f"Invalid target position: {target}")
         self._apply_damage_with_falloff(torpedo, target)
 
-    def place_mine(self, mine: Mine, position: GridPosition) -> str:
-        assert position in self.possible_object_launch(mine)
+    def place_mine(self, mine: Mine, position: GridPosition) -> None:
+        if position not in self.possible_object_launch(mine):
+            raise ValueError(f"Invalid mine placement: {position}")
         self._grid[position.y][position.x].add(mine)
-        return mine.uid
+        self._mine_positions[mine.uid] = position
 
     def _find_mine(self, mine_uid: str) -> Tuple[Mine, GridPosition]:
-        for row in self._grid:
-            for cell in row:
-                mine = cell.find_mine(mine_uid)
-                if mine is not None:
-                    return mine, cell.position
+        for mine_uid, position in self._mine_positions.items():
+            mine = self._grid[position.y][position.x].find_mine(mine_uid)
+            if mine is not None:
+                return mine, position
         raise ValueError(f"Mine {mine_uid} not found")
 
     def _apply_damage_with_falloff(self, launchable: Launchable, target: GridPosition) -> None:
@@ -234,6 +230,8 @@ class Map:
     def detonate_mine(self, mine_uid: str) -> None:
         mine, mine_position = self._find_mine(mine_uid)
         self._apply_damage_with_falloff(mine, mine_position)
+        self._grid[mine_position.y][mine_position.x].remove(mine)
+        del self._mine_positions[mine_uid]
 
     def _cells_in_radius(self, position: GridPosition, reach: int) -> List[CellDistance]:
         cell_distances = []

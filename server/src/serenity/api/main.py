@@ -14,6 +14,7 @@ from serenity.common.definitions import MessageType, ServiceType, Topic
 from serenity.common.redis_client import RedisClient, RedisMessage
 from serenity.common.service import Service
 from serenity.sonar.sonar_service import SonarService
+from serenity.switch.switch_service import SwitchService
 from serenity.travel.definitions import ShipState, TravelState
 from serenity.travel.nx_to_flow_adapter import NxToFlowAdapter
 from serenity.sonar.definitions import Ship
@@ -35,6 +36,7 @@ redis = RedisClient()
 services_dict: Dict[Topic, Service] = {
     ServiceType.TRAVEL: TravelService,
     ServiceType.SONAR: SonarService,
+    ServiceType.SWITCH: SwitchService,
 }
 
 if settings.restore_persisted_state:
@@ -73,14 +75,8 @@ async def dashboard(websocket: WebSocket) -> None:
 
     await services[ServiceType.TRAVEL].broadcast_status()
     await services[ServiceType.SONAR].broadcast_status()
+
     await websockets_manager.forward_socket_messages(websocket)
-    await redis.publish(
-        RedisMessage(
-            topic=Topic.COMMAND,
-            type=MessageType.START_BATTLE,
-            data={"map": "alpha", "ship": Ship(name="Yow", hp=3, owner="npcs")},
-        )
-    )
 
 
 @app.get("/game_state")
@@ -98,11 +94,15 @@ async def take_off(target_id: str) -> None:
     await services[ServiceType.TRAVEL].takeoff(target_id)
 
 
-@app.post("/start_battle")
-async def start_battle(attacking_ship: Ship) -> None:
-    pass
-    # await redis.publish(attacking_ship, Topic.BATTLE)
-
+@app.get("/start_battle")
+async def start_battle() -> None:
+    await redis.publish(
+        RedisMessage(
+            topic=Topic.COMMAND,
+            type=MessageType.START_BATTLE,
+            data={"map": "alpha", "ship": Ship(name="Yow", hp=3, owner="npcs")},
+        )
+    )
 
 @app.get("/broadcast")
 async def broadcast() -> None:

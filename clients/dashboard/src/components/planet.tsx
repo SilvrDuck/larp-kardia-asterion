@@ -66,7 +66,7 @@ function PlanetModal({ isOpen, onClose, data, sendMessage }) {
                 <h3>Satellites connus</h3>
                 <Badge >{data.satellites}</Badge>
                 <Text mt='3'>
-                    <p>{data.description}</p>
+                    {data.description}
                 </Text>
             </Stack>
         </CardBody>

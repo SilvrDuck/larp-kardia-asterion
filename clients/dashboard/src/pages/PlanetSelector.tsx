@@ -1,4 +1,4 @@
-import { Flex, Stepper, VStack } from "@chakra-ui/react";
+import { Box, Flex, Stepper, VStack } from "@chakra-ui/react";
 import { useContext, useEffect } from "react";
 import { Background, Controls, MiniMap, ReactFlow, useEdgesState, useNodesState } from "reactflow";
 import "reactflow/dist/style.css";
@@ -25,7 +25,9 @@ export function PlanetSelector() {
 
     return (
         <>
+
             <PlanetGraph />
+
         </>
     )
 }

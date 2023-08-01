@@ -10,10 +10,10 @@ orjson = "*"
 pydantic-settings = "*"
 uvicorn = "*"
 websockets = "*"
-fastapi-websocket-pubsub = "*"
 redis = "*"
 networkx = "*"
-fastapi-mqtt = "*"
+numpy = "*"
+aiomqtt = "*"
 
 [dev-packages]
 pylint = "*"

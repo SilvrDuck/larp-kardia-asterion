@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     package_dir: Path = Path(__file__).parents[1]
     planetary_config_path: Path = package_dir / "defaults/planet_graph.json"
     asteroid_map_dir: Path = package_dir / "defaults/maps/"
+    switches_path: Path = package_dir / "defaults/switches.json"
 
     class Config:
         env_prefix = "serenity_"

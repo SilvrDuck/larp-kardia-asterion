@@ -15,6 +15,7 @@ import { SonarProvider } from './lib/sonarProvider.tsx';
 import { Control } from './pages/Control.tsx';
 
 
+
 const router = createBrowserRouter([
   {
     path: "/", element: <App />,

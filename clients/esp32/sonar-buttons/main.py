@@ -3,7 +3,7 @@ from umqtt import MQTTClient
 import time
 import ubinascii
 import sys
-from config import global_config, SERVER_IP, SWITCH_TOPIC, LED_TOPIC
+from config import global_config, SERVER_IP, SWITCH_TOPIC, LED_TOPIC, CONTROL_PANEL
 
 import json
 
@@ -13,21 +13,18 @@ from inputs import Manager, Digital
 
 
 # Each esp32 uses a different config
-config = global_config["pannel_b"]
+config = global_config[CONTROL_PANEL]
 
 # ======================== MQTT ========================
 
 print("Connecting to MQTT...")
 
-mqtt = MQTTClient(
-    ubinascii.hexlify(machine.unique_id()),
-    SERVER_IP,
-    keepalive=60
-)
+mqtt = MQTTClient(ubinascii.hexlify(machine.unique_id()), SERVER_IP, keepalive=60)
 
 mqtt.connect()
 
 print("Connected!")
+
 
 def decode_msg(msg):
     """Message format: {code}{value},
@@ -39,6 +36,7 @@ def decode_msg(msg):
     print("Decoding message: {}".format(message))
     return message[:4], int(message[4:])
 
+
 def receive_callback(topic, msg):
     print("Received message on topic {}: {}".format(topic, msg))
     if topic == LED_TOPIC:
@@ -48,7 +46,8 @@ def receive_callback(topic, msg):
         try:
             leds[led].value(value)
         except KeyError:
-            pass # led meant for another board
+            pass  # led meant for another board
+
 
 mqtt.set_callback(receive_callback)
 
@@ -59,13 +58,12 @@ mqtt.subscribe(LED_TOPIC)
 
 print("Setting up I/O...")
 
-leds = {
-    item["code"]: Pin(item["led"], Pin.OUT)
-    for item in config
-}
+leds = {item["code"]: Pin(item["led"], Pin.OUT) for item in config}
+
 
 def switch_led(led):
     led.value(not led.value())
+
 
 def switch_callback(input_name):
     switch_led(leds[input_name])
@@ -74,17 +72,16 @@ def switch_callback(input_name):
     print("Sent!")
 
 
-
 switches = Manager(
     [
         Digital(
-            "{}: {}".format(item["switch"], item["code"]), 
+            "{}: {}".format(item["switch"], item["code"]),
             switch_func=switch_callback,
             stable_read_count=4,
         )
         for item in config
     ],
-    poll_freq=100
+    poll_freq=100,
 )
 
 
@@ -95,13 +92,13 @@ def main():
     # Asks the server to send the current state of the leds
     mqtt.publish(SWITCH_TOPIC, b"__init__", qos=0)
     failure_count = 0
-    
+
     print("Main loop started.")
 
     while True:
         try:
             # Trigger callbacks for switched switches
-            #switches.service_inputs()
+            # switches.service_inputs()
 
             # Trigger led callbacks on new messages
             mqtt.wait_msg()

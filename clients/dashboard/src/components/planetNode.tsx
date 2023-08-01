@@ -1,5 +1,5 @@
 import { Handle, Position } from 'reactflow';
-import { Planet } from './planet.tsx';
+import { Planet, PlanetNodeData } from './planet.tsx';
 import { Avatar, Box, Button, Center, Image, useDisclosure } from '@chakra-ui/react';
 import {
     Modal,
@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react'
 
 
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, memo } from 'react';
 import { TravelContext } from '../lib/travelProvider.tsx';
 
 

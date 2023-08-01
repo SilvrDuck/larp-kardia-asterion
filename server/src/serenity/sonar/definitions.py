@@ -78,6 +78,7 @@ class MapModel(BaseModel):
     player_ship: Ship
     npc_ship: Ship
     ship_positions: Dict[Owner, GridPosition]
+    mine_positions: Dict[str, GridPosition]
 
 
 class SonarState(StatusBaseModel):
@@ -85,7 +86,7 @@ class SonarState(StatusBaseModel):
     map: Optional[MapModel]
 
     @staticmethod
-    def to_key() -> str:
+    def to_key() -> ServiceType:
         return ServiceType.SONAR
 
 
@@ -99,5 +100,5 @@ class SonarConfig(StatusBaseModel):
     player_default_hp: int
 
     @staticmethod
-    def to_key() -> str:
+    def to_key() -> ServiceType:
         return ServiceType.SONAR

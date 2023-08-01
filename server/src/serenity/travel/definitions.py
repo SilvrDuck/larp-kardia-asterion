@@ -53,7 +53,7 @@ class TravelState(StatusBaseModel):
     current_step_id: str | tuple[str, str]
 
     @staticmethod
-    def to_key() -> str:
+    def to_key() -> ServiceType:
         return ServiceType.TRAVEL
 
 
@@ -61,5 +61,5 @@ class TravelConfig(StatusBaseModel):
     travel_tick_seconds: float
 
     @staticmethod
-    def to_key() -> str:
+    def to_key() -> ServiceType:
         return ServiceType.TRAVEL

@@ -30,7 +30,9 @@ For testing purposes, it is easier to have a given pair of
 switch/led on the same side of the board.
 """
 
-SERVER_IP = "192.168.17.183"
+SERVER_IP = "192.168.53.183"
+
+CONTROL_PANEL = "pannel_a"
 
 SWITCH_TOPIC = b"switch"
 LED_TOPIC = b"led"

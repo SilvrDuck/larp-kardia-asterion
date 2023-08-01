@@ -5,6 +5,7 @@ import { PlanetSelector } from "./PlanetSelector";
 import { SonarContext } from "../lib/sonarProvider";
 import { InitMessage, WebsocketContext } from "../lib/websocketProvider";
 import { useParams } from "react-router-dom";
+import { OwnerContext } from "../lib/ownerContext";
 
 function Captain() {
 
@@ -28,12 +29,13 @@ function Captain() {
         return <p>[Hors-Jeu] APPELEZ UN PNJ SI VOUS VOYEZ ÇA. Invalid owner: {owner}, change URL!</p>
     }
 
+    const displayed = in_battle ? <BattleMap /> : <PlanetSelector />
 
-    if (in_battle) {
-        return <BattleMap controled={owner} />
-    } else {
-        return <PlanetSelector />
-    }
+    return (
+        <OwnerContext.Provider value={owner}>
+            {displayed}
+        </OwnerContext.Provider>
+    )
 }
 
 export default Captain;

@@ -1,16 +1,17 @@
-import { Box, Center, Flex, Grid, GridItem, HStack, VStack, Image, keyframes } from '@chakra-ui/react'
+import { Box, Center, Flex, Grid, GridItem, HStack, VStack, Image, keyframes, Text } from '@chakra-ui/react'
 import { SonarContext, Map } from '../lib/sonarProvider'
 import { useContext, useEffect, useState } from 'react'
 import { pseudoRandomRotationString, rotateAnimation } from './planet'
 import { rotate } from 'fp-ts/lib/ReadonlyNonEmptyArray'
+import { OwnerContext } from '../lib/ownerContext'
 
 const gridGap = 1.5
 
-function idxToCol(i: number) {
+export function idxToCol(i: number) {
     return String.fromCharCode(65 + i)
 }
 
-function idxToRow(i: number) {
+export function idxToRow(i: number) {
     return i + 1
 }
 
@@ -76,7 +77,10 @@ function imageForCell(map: Map, x: number, y: number, hidden: "players" | "npcs"
     return dot
 }
 
-function Cell({ map, row, col, hidden }: { map: Map }) {
+function Cell({ map, row, col }: { map: Map, row: number, col: number }) {
+
+    const owner = useContext(OwnerContext)
+    const hidden = owner == "players" ? "npcs" : "players"
 
     const image = imageForCell(map, row, col, hidden)
 
@@ -87,12 +91,12 @@ function Cell({ map, row, col, hidden }: { map: Map }) {
     )
 }
 
-function Row({ map, row, hidden }) {
+function Row({ map, row }) {
 
     return (
         <Flex height="100%" width="100%" direction={"row"} gap={gridGap} >
             {[...Array(map.width).keys()].map((index) => (
-                <Cell map={map} row={row} col={index} hidden={hidden} />
+                <Cell map={map} row={row} col={index} key={"col" + index.toString()} />
             ))}
         </Flex>
     )
@@ -104,8 +108,9 @@ function Header({ dim, direction, mapFunc, area }) {
             <Flex height="100%" width="100%" direction={direction} gap={gridGap} >
                 {[...Array(dim).keys()].map((index) => (
                     <Box
-                        height="100%" width="100%"
-                        align="center" justify="center" color="white"
+                        margin="auto" 
+                        color="white"
+                        key={"nav" + mapFunc(index).toString()}
                     >
                         {mapFunc(index)}
                     </Box>
@@ -117,11 +122,10 @@ function Header({ dim, direction, mapFunc, area }) {
 
 
 
-export function BattleGrid({ controled }: { controled: "players" | "npcs" }) {
+export function BattleGrid() {
 
     const { map } = useContext(SonarContext)
 
-    const hidden = controled === "players" ? "npcs" : "players"
 
     if (map === null) {
         return (
@@ -135,7 +139,7 @@ export function BattleGrid({ controled }: { controled: "players" | "npcs" }) {
 
     return (
         <>
-            <Box>{JSON.stringify(map.npc_ship)}</Box>
+
             <Flex
                 justify="center"
                 align="center"
@@ -146,8 +150,10 @@ export function BattleGrid({ controled }: { controled: "players" | "npcs" }) {
             >
                 <Grid
                     templateAreas={
-                        `"unk col col"
-                    "row grid grid"`}
+                    `"unk col col unk2"
+                    "row grid grid row2"
+                    "unk3 col2 col2 unk4"`
+                }
                     gridTemplateRows={'3em 1fr'}
                     gridTemplateColumns={'3em 1fr'}
                     gap={gridGap}
@@ -160,7 +166,9 @@ export function BattleGrid({ controled }: { controled: "players" | "npcs" }) {
                     width="100%"
                 >
                     <Header dim={map.width} direction={"row"} mapFunc={idxToCol} area={"col"} />
+                    <Header dim={map.width} direction={"row"} mapFunc={idxToCol} area={"col2"} />
                     <Header dim={map.height} direction={"column"} mapFunc={idxToRow} area={"row"} />
+                    <Header dim={map.height} direction={"column"} mapFunc={idxToRow} area={"row2"} />
                     <GridItem area={'grid'}>
                         <Flex
                             align="center"
@@ -173,7 +181,7 @@ export function BattleGrid({ controled }: { controled: "players" | "npcs" }) {
                             gap={gridGap}
                         >
                             {[...Array(map.height).keys()].map((index) => (
-                                <Row map={map} row={index} hidden={hidden} />
+                                <Row map={map} row={index} key={"row" + index.toString()} />
                             ))}
 
                         </Flex>
