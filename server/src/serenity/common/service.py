@@ -142,9 +142,8 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
         )
 
     async def broadcast_status(self) -> None:
-        async with self.get_self_lock():
-            await self._broadcast_state()
-            await self._broadcast_config()
+        await self._broadcast_state()
+        await self._broadcast_config()
 
     async def update_state(self, state: StateModel) -> None:
         async with self.get_self_lock():

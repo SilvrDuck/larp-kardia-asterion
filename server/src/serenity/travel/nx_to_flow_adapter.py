@@ -6,7 +6,7 @@ from serenity.common.adapter import Adapter
 from serenity.common.definitions import Jsonable
 from serenity.common.redis_client import RedisMessage
 import networkx as nx
-from serenity.travel.definitions import TravelState
+from serenity.travel.definitions import PlanetaryConfig, TravelState
 from serenity.travel.planet_graph import PlanetGraph
 
 
@@ -22,7 +22,21 @@ class NxToFlowAdapter(Adapter[TravelState]):
         output["flow_graph"] = flow_graph
         output["num_steps"] = nx.dag_longest_path_length(graph) + 1
 
+        output["total_duration_minutes"] = cls._compute_total_duration_minutes(model.planetary_config, model.current_step_id)
+
         return output
+
+    @classmethod
+    def _compute_total_duration_minutes(cls, planetary_config: PlanetaryConfig, current_id: str | Tuple[str, str]) -> float:
+        if isinstance(current_id, tuple):
+            for link in planetary_config.links:
+                if link.source == current_id[0] and link.target == current_id[1]:
+                    return link.max_step_minutes
+                
+        for node in planetary_config.nodes:
+            if node.id == current_id:
+                return node.max_step_minutes
+        
 
     @classmethod
     def _node_link_to_flow(cls, graph: PlanetGraph, current_id: str | Tuple[str, str]) -> dict:

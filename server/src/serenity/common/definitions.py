@@ -39,6 +39,7 @@ class MessageType(str, Enum):
     DAMAGE = "damage"
     DIRECT_DAMAGE = "direct_damage"
     SURFACE = "surface"
+    BACKGROUND_SOUND = "background_sound"
 
 
 class ServiceType(str, Enum):

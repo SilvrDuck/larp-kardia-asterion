@@ -4,6 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+playsound = "*"
+pyobjc = "*"
 
 [dev-packages]
 ipykernel = "*"

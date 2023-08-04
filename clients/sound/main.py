@@ -9,7 +9,7 @@ import time
 
 logging.basicConfig(level=logging.DEBUG)
 
-SERVER_URL = "ws://192.168.1.10:8000/sound"
+SERVER_URL = "ws://localhost:8000/sound"
 
 
 loop_queue = asyncio.Queue()

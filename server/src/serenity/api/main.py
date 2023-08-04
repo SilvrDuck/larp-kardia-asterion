@@ -88,9 +88,9 @@ async def dashboard(websocket: WebSocket) -> None:
     await websockets_manager.forward_socket_messages(websocket)
 
 
-@app.websocket("/sound")
-async def sound(websocket: WebSocket) -> None:
-    await websockets_manager.subscribe_to_broadcast(websocket, {Topic.SOUND})
+# @app.websocket("/sound")
+# async def sound(websocket: WebSocket) -> None:
+#     await websockets_manager.subscribe_to_broadcast(websocket, {Topic.SOUND})
 
 
 @app.get("/state/{service_type}")

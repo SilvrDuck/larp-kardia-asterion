@@ -6,7 +6,7 @@ from serenity.common.definitions import ServiceType, StatusBaseModel
 
 
 class SoundState(StatusBaseModel):
-    pass
+    background_sound: Optional[str]
 
     @staticmethod
     def to_key() -> ServiceType:
