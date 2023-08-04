@@ -7,16 +7,16 @@ import sys
 import machine
 from machine import Pin
 
-SERVER_IP = "192.168.17.183"
-COLOR_TOPIC = b"COLOR"
+SERVER_IP = "192.168.1.10"
+COLOR_TOPIC = b"color"
 
 # ======================== I/0 ========================
 
 print("Setting up I/O...")
 
 red = Pin(4, Pin.OUT)
-green = Pin(18, Pin.OUT)
-blue = Pin(19, Pin.OUT)
+green = Pin(5, Pin.OUT)
+blue = Pin(18, Pin.OUT)
 
 color_map = {
     "red": (1, 0, 0),
@@ -61,19 +61,20 @@ print("Connected!")
 
 def decode_message(message):
     message = message.payload.decode("utf-8")
-    try:
-        color, mode, secondary = message.split(";")
-    except ValueError:
-        color, mode = message.split(";")
+
+    color, mode, secondary = message.split(";")
+
+    if secondary == "":
         secondary = None
+        
     return color, mode, secondary
 
 
 def receive_callback(topic, msg):
-    print("Received message on topic {}: {}".format(topic, msg))
     if topic == COLOR_TOPIC:
+        print("Received color message {}".format(msg))
 
-        color, mode, secondary = msg.decode("utf-8")        
+        color, mode, secondary = decode_message(msg)       
 
         if mode == "set":
             set(color)

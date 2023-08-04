@@ -1,4 +1,5 @@
 from __future__ import annotations
+from enum import Enum
 from typing import Dict, Set
 from mimetypes import init
 
@@ -22,10 +23,15 @@ class GridPosition:
 
 class GameActor(BaseModel, ABC):
     type: str
-    owner: Optional[Owner] = None
+    owner: Optional[Owner] = Field(None, examples=[Owner.NPCS])
 
     class Config:
         frozen = True
+
+
+class Damage(GameActor):
+    type: str = "damage"
+    amount: int
 
 
 class Trail(GameActor):
@@ -34,13 +40,24 @@ class Trail(GameActor):
 
 class Ship(GameActor):
     type: str = "ship"
-    name: str
-    hp: int
+    name: str = Field(..., examples=["Reaver"])
+
+    total_hp: int = Field(..., ge=0, examples=[3])
+    hp: Optional[int] = Field(None, ge=1, examples=[3])
+
+    def __init__(self, **data) -> None:
+        if "hp" not in data or data["hp"] is None:
+            data["hp"] = data["total_hp"]
+
+        if data["hp"] > data["total_hp"]:
+            data["hp"] = data["total_hp"]
+
+        super().__init__(**data)
 
     def apply_damage(self, damage: int) -> Self:
         if self.hp - damage <= 0:
             raise ShipDestroyed(self)
-        return Ship(name=self.name, hp=self.hp - damage, owner=self.owner)
+        return Ship(name=self.name, hp=self.hp - damage, total_hp=self.total_hp, owner=self.owner)
 
 
 class Launchable(GameActor):
@@ -98,7 +115,19 @@ class SonarConfig(StatusBaseModel):
     mine_reach: int
     mine_radius: int
     player_default_hp: int
+    use_control_panel: bool
 
     @staticmethod
     def to_key() -> ServiceType:
         return ServiceType.SONAR
+
+
+class MapType(str, Enum):
+    ALPHA = "alpha"
+    BRAVO = "bravo"
+    CHARLIE = "charlie"
+
+
+class Battle(BaseModel):
+    map: MapType
+    ship: Ship

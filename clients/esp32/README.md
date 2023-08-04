@@ -1,1 +1,0 @@
-Each esp32 should get the content of one of the project folder AND all the content of the common folder.

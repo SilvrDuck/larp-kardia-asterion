@@ -53,7 +53,6 @@ class WebsocketsManager:
                 message = self._adapt_if_needed(message, connection)
                 data = message.model_dump(mode="json")
 
-                logging.debug("WEBSOCK: Broadcast, %s, %s", message.topic, str(data)[:200])
                 await connection.send_json(data)
             except RuntimeError as err:
                 logging.warning("Trying to broadcast to %s, but connection is closed (%s).", connection, err)

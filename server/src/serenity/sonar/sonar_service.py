@@ -15,7 +15,7 @@ from serenity.common.definitions import MessageType, Owner, Topic
 
 from serenity.common.redis_client import RedisMessage
 from serenity.common.service import Service
-from serenity.sonar.definitions import Asteroid, CellModel, Mine, Ship, Torpedo
+from serenity.sonar.definitions import Asteroid, CellModel, Damage, Mine, Ship, Torpedo
 from serenity.sonar.definitions import MapModel, SonarConfig, SonarState
 from serenity.sonar.exceptions import ShipDestroyed
 from serenity.sonar.logic import Direction, GridPosition, Map
@@ -41,6 +41,7 @@ class SonarService(Service[SonarState, SonarConfig]):
             mine_reach=settings.sonar_mine_reach,
             mine_radius=settings.sonar_mine_radius,
             player_default_hp=settings.sonar_player_default_hp,
+            use_control_panel=settings.sonar_use_control_panel,
         )
         return cls(default_state, default_config)
 
@@ -50,7 +51,7 @@ class SonarService(Service[SonarState, SonarConfig]):
             self._map = Map(state.map)
         self._map = None
 
-    def _to_state(self) -> SonarState:
+    def to_state(self) -> SonarState:
         map_ = None
         if self._map is not None:
             map_ = self._map.to_model()
@@ -62,7 +63,7 @@ class SonarService(Service[SonarState, SonarConfig]):
     def _update_config(self, config: SonarConfig) -> None:
         self._config = config
 
-    def _to_config(self) -> SonarConfig:
+    def to_config(self) -> SonarConfig:
         return self._config
 
     async def _start(self) -> None:
@@ -91,10 +92,14 @@ class SonarService(Service[SonarState, SonarConfig]):
                             )
                         case RedisMessage(type=MessageType.LAUNCH_MINE, data=data):
                             await self.execute(self.place_mine, Owner(data["owner"]), GridPosition(**data["target"]))
+                        case RedisMessage(type=MessageType.DETONATE_MINE, data=data):
+                            await self.execute(self.detonate_mine, data["mine_uid"])
                         case RedisMessage(type=MessageType.REPAIR, data=data):
-                            await self.execute(self.repair, Owner(**data))
+                            await self.execute(self.repair, Owner(data["owner"]), data["hp"])
                         case RedisMessage(type=MessageType.START_BATTLE):
                             raise ValueError("Can only start battle if not in battle.")
+                        case RedisMessage(type=MessageType.DIRECT_DAMAGE, data=data):
+                            await self.execute(self._direct_damage, Damage(**data))
                         case _:
                             raise ValueError(f"Unknown message type: {message.type}.")
             except Exception as err:
@@ -139,7 +144,7 @@ class SonarService(Service[SonarState, SonarConfig]):
     def _prepare_battle(self, map_name: str, npc_ship: Ship) -> None:
         player_ship = Ship(
             name=settings.serenity_name,
-            hp=self._config.player_default_hp,
+            total_hp=self._config.player_default_hp,
             owner=Owner.PLAYERS,
         )
         asteroids = self._get_asteroid_positions(map_name)
@@ -178,7 +183,18 @@ class SonarService(Service[SonarState, SonarConfig]):
             reach=self._config.torpedo_reach,
             radius=self._config.torpedo_radius,
         )
-        self._map.launch_torpedo(torpedo, target)
+        damages = self._map.launch_torpedo(torpedo, target)
+        await self._broadcast_damages(damages)
+
+    async def _broadcast_damages(self, damages: List[Damage]) -> None:
+        for damage in damages:
+            await self.redis.publish(
+                RedisMessage(
+                    topic=Topic.BROADCAST_STATUS,
+                    type=MessageType.DAMAGE,
+                    data=damage,
+                )
+            )
 
     async def place_mine(self, owner: Owner, target: GridPosition) -> None:
         mine = Mine(
@@ -189,8 +205,15 @@ class SonarService(Service[SonarState, SonarConfig]):
         )
         self._map.place_mine(mine, target)
 
-    async def repair(self, owner: Owner) -> None:
-        raise NotImplementedError()
+    async def detonate_mine(self, mine_uid: str) -> None:
+        damages = self._map.detonate_mine(mine_uid)
+        await self._broadcast_damages(damages)
+
+    async def repair(self, owner: Owner, hp: int) -> None:
+        self._map.remove_hp(owner, -hp)
+
+    async def _direct_damage(self, damage: Damage) -> None:
+        self._map.remove_hp(damage.owner, damage.amount)
 
     def _select_position(self, unavailable: List[GridPosition]) -> GridPosition:
         """Choses a starting position at random within the map,

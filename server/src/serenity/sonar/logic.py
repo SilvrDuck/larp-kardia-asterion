@@ -1,12 +1,14 @@
 from copy import deepcopy
 from dataclasses import asdict, dataclass
 from enum import Enum, auto
+from hmac import new
 from typing import Dict, List, Optional, Self, Set, Tuple
 from serenity.common.definitions import Direction
-
+import math
 from serenity.sonar.definitions import (
     Asteroid,
     CellModel,
+    Damage,
     GameActor,
     GridPosition,
     Launchable,
@@ -50,7 +52,7 @@ class Cell:
         return None
 
     def add(self, actor: GameActor):
-        if self._has_asteroid:
+        if self._has_asteroid and not isinstance(actor, Torpedo):
             raise CannotBeAddedToCell()
 
         match actor:
@@ -72,14 +74,26 @@ class Cell:
     def remove(self, actor: GameActor):
         self._content.remove(actor)
 
-    def apply_damage(self, damage: int):
+    def apply_damage(self, damage: int) -> List[Damage]:
+        inflicted = []
+        old_objects = []
+        new_objects = []
         for actor in self._content:
             try:
                 new_actor = actor.apply_damage(damage)
-                self._content.remove(actor)
-                self._content.add(new_actor)
+                inflicted.append(Damage(amount=damage, owner=new_actor.owner))
+                old_objects.append(actor)
+                new_objects.append(new_actor)
             except AttributeError:
                 pass
+
+        for old_actor in old_objects:
+            self._content.remove(old_actor)
+
+        for new_actor in new_objects:
+            self._content.add(new_actor)
+
+        return inflicted
 
 
 @dataclass(frozen=True)
@@ -159,6 +173,10 @@ class Map:
             case Direction.West:
                 return GridPosition(position.x - 1, position.y)
 
+    def remove_hp(self, owner: Owner, hp: int) -> None:
+        cell = self._grid[self._ship_positions[owner].y][self._ship_positions[owner].x]
+        cell.apply_damage(hp)
+
     def available_moves_for_ship(self, owner: Owner) -> List[Direction]:
         ship_position = self._ship_positions[owner]
         current_cell = self._grid[ship_position.y][ship_position.x]
@@ -203,10 +221,11 @@ class Map:
 
         return possible_positions
 
-    def launch_torpedo(self, torpedo: Torpedo, target: GridPosition) -> None:
+    def launch_torpedo(self, torpedo: Torpedo, target: GridPosition) -> List[Damage]:
         if target not in self.possible_object_launch(torpedo):
             raise ValueError(f"Invalid target position: {target}")
-        self._apply_damage_with_falloff(torpedo, target)
+        inflicted = self._apply_damage_with_falloff(torpedo, target)
+        return inflicted
 
     def place_mine(self, mine: Mine, position: GridPosition) -> None:
         if position not in self.possible_object_launch(mine):
@@ -221,17 +240,29 @@ class Map:
                 return mine, position
         raise ValueError(f"Mine {mine_uid} not found")
 
-    def _apply_damage_with_falloff(self, launchable: Launchable, target: GridPosition) -> None:
+    def _apply_damage_with_falloff(self, launchable: Launchable, target: GridPosition) -> List[Damage]:
         damaged_cells = self._cells_in_radius(target, launchable.radius)
+
+        inflicted_damages = []
         for cell_distance in damaged_cells:
             damage = launchable.damage - cell_distance.distance
-            cell_distance.cell.apply_damage(damage)
+            print(cell_distance.cell._content, cell_distance.distance)
+            inflicted = cell_distance.cell.apply_damage(damage)
+            inflicted_damages.extend(inflicted)
+        return inflicted_damages
 
-    def detonate_mine(self, mine_uid: str) -> None:
+    def detonate_mine(self, mine_uid: str) -> List[Damage]:
         mine, mine_position = self._find_mine(mine_uid)
-        self._apply_damage_with_falloff(mine, mine_position)
+        inflicted = self._apply_damage_with_falloff(mine, mine_position)
         self._grid[mine_position.y][mine_position.x].remove(mine)
         del self._mine_positions[mine_uid]
+        return inflicted
+
+    def _grid_distance(self, a: GridPosition, b: GridPosition) -> int:
+        dx = abs(a.x - b.x)
+        dy = abs(a.y - b.y)
+
+        return max(dx, dy)
 
     def _cells_in_radius(self, position: GridPosition, reach: int) -> List[CellDistance]:
         cell_distances = []
@@ -239,11 +270,14 @@ class Map:
             for x in range(position.x - reach, position.x + reach + 1):
                 if x < 0 or x >= self.width or y < 0 or y >= self.height:
                     continue
-                if abs(position.x - x) + abs(position.y - y) > reach:
+
+                target = GridPosition(x, y)
+                distance = self._grid_distance(position, target)
+
+                if distance > reach:
                     continue
 
                 cell = self._grid[y][x]
-                distance = abs(position.x - x) + abs(position.y - y)
-                cell_distances.append(CellDistance(cell, distance, GridPosition(x, y)))
+                cell_distances.append(CellDistance(cell, distance, target))
 
         return cell_distances

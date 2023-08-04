@@ -5,7 +5,7 @@ import { pseudoRandomRotationString, rotateAnimation } from './planet'
 import { rotate } from 'fp-ts/lib/ReadonlyNonEmptyArray'
 import { OwnerContext } from '../lib/ownerContext'
 
-const gridGap = 1.5
+const gridGap = 0
 
 export function idxToCol(i: number) {
     return String.fromCharCode(65 + i)
@@ -77,16 +77,60 @@ function imageForCell(map: Map, x: number, y: number, hidden: "players" | "npcs"
     return dot
 }
 
+function maybeMine(cell, hidden) {
+    const maybeMine = cell.content.find((e) => e.type === "mine")
+    if (maybeMine !== undefined && maybeMine.owner !== hidden) {
+        return <Image src="/assets/sonar/mine.png"
+            zIndex={10} position={"absolute"} align={"center"} height={"5%"}
+            animation={pseudoRandomRotationString("mine")}
+        />
+    }
+    return <></>
+}
+
+function cadran(x, y) {
+    if (x < 5 && y < 5) {
+        return "1"
+    } else if (x < 5 && y < 10) {
+        return "2"
+    } else if (x < 5 && y > 10) {
+        return "3"
+    } else if (x < 10 && y < 5) {
+        return "4"
+    } else if (x < 10 && y < 10) {
+        return "5"
+    } else if (x < 10 && y > 10) {
+        return "6"
+    } else if (x > 10 && y < 5) {
+        return "7"
+    } else if (x > 10 && y < 10) {
+        return "8"
+    } else {
+        return "9"
+    }
+}
+
 function Cell({ map, row, col }: { map: Map, row: number, col: number }) {
 
     const owner = useContext(OwnerContext)
     const hidden = owner == "players" ? "npcs" : "players"
 
-    const image = imageForCell(map, row, col, hidden)
+    const leftBorder = col % 5 === 0 && col > 0 ? "1px dotted grey" : "none"
+    const topBorder = row % 5 === 0 && row > 0 ? "1px dotted grey" : "none"
+
+    const central = (row + 3) % 5 == 0 && (col + 3) % 5 == 0
+    const sector = central ? <Box 
+    fontSize={"15em"} position="absolute" zIndex={0} color="white" opacity={0.2}
+    mt="-150" ml="-50"
+    >{cadran(row, col)}</Box> : <></>
 
     return (
-        <Box height="100%" width="100%" >
-            {image}
+        <Box height="100%" width="100%"
+            borderLeft={leftBorder} borderTop={topBorder} p="1"
+        >
+            {sector}
+            {maybeMine(map.grid[row][col], hidden)}
+            {imageForCell(map, row, col, hidden)}
         </Box>
     )
 }
@@ -108,7 +152,7 @@ function Header({ dim, direction, mapFunc, area }) {
             <Flex height="100%" width="100%" direction={direction} gap={gridGap} >
                 {[...Array(dim).keys()].map((index) => (
                     <Box
-                        margin="auto" 
+                        margin="auto"
                         color="white"
                         key={"nav" + mapFunc(index).toString()}
                     >
@@ -150,10 +194,10 @@ export function BattleGrid() {
             >
                 <Grid
                     templateAreas={
-                    `"unk col col unk2"
+                        `"unk col col unk2"
                     "row grid grid row2"
                     "unk3 col2 col2 unk4"`
-                }
+                    }
                     gridTemplateRows={'3em 1fr'}
                     gridTemplateColumns={'3em 1fr'}
                     gap={gridGap}

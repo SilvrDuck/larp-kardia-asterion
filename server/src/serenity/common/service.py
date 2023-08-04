@@ -42,7 +42,7 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
         pass
 
     @abstractmethod
-    def _to_state(self) -> StateModel:
+    def to_state(self) -> StateModel:
         pass
 
     @abstractmethod
@@ -50,7 +50,7 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
         pass
 
     @abstractmethod
-    def _to_config(self) -> ConfigModel:
+    def to_config(self) -> ConfigModel:
         pass
 
     @abstractmethod
@@ -73,7 +73,7 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
         return self.redis.get_lock(type(self).__name__)
 
     async def _persist(self) -> None:
-        await self.redis.set(self._get_save_key, self.to_dict())
+        await self.redis.set(self._get_save_key(), self.to_dict())
 
     @classmethod
     async def restore(cls) -> Self:
@@ -114,12 +114,13 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
                         await self._broadcast_state()
 
     async def _broadcast_config(self) -> None:
+        await self._persist()
         await self.redis.publish(
             RedisMessage(
                 topic=Topic.BROADCAST_STATUS,
                 type=MessageType.CONFIG,
                 concerns=self.config_type.to_key(),
-                data=self._to_config(),
+                data=self.to_config(),
             ),
         )
 
@@ -130,12 +131,13 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
             await self._broadcast_config()
 
     async def _broadcast_state(self) -> None:
+        await self._persist()
         await self.redis.publish(
             RedisMessage(
                 topic=Topic.BROADCAST_STATUS,
                 type=MessageType.STATE,
                 concerns=self.state_type.to_key(),
-                data=self._to_state(),
+                data=self.to_state(),
             ),
         )
 
@@ -152,13 +154,18 @@ class Service(DictConvertible, ABC, Generic[StateModel, ConfigModel]):
 
     def to_dict(self) -> Jsonable:
         return {
-            "state": self._to_state().model_dump(),
-            "config": self._to_config().model_dump(),
+            "state": self.to_state().model_dump(mode="json"),
+            "config": self.to_config().model_dump(mode="json"),
         }
 
     @classmethod
     def from_dict(cls, data: Jsonable) -> Self:
-        return cls(
-            state=cls.state_type(**data["state"]),
-            config=cls.config_type(**data["config"]),
-        )
+        try:
+            return cls(
+                state=cls.state_type(**data["state"]),
+                config=cls.config_type(**data["config"]),
+            )
+
+        except Exception as err:
+            logging.error(f"Failed to load state. {err}")
+            return cls.default_service()

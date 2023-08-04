@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     # ---------------------------------------------------
     # Startup parameters
     # ---------------------------------------------------
-    restore_persisted_state: bool = False
+    restore_persisted_state: bool = True
     log_level: int = logging.DEBUG
 
     # ---------------------------------------------------
@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     sonar_mine_reach: int = 4
     sonar_mine_radius: int = 2
     sonar_player_default_hp: int = 4
+    sonar_use_control_panel: bool= True
 
     # ---------------------------------------------------
     # Paths

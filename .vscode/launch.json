@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "API",
+            "type": "python",
+            "cwd": "${workspaceFolder}",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "serenity.api.main:app",
+                "--port",
+                "8000",
+                "--reload",
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}

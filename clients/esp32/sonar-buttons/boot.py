@@ -1,9 +1,10 @@
 import network
 import time
+from machine import Pin
 
 # Replace the following with your WIFI Credentials
-SSID = "Turbolos"
-SSI_PASSWORD = "slipknot666"
+SSID = "saintsorny"
+SSI_PASSWORD = "saintsorny"
 
 wlan = network.WLAN(network.STA_IF)
 
@@ -36,6 +37,10 @@ def connect():
                 break
             except OSError:
                 print("Connection failed.")
+                led = Pin(14, Pin.OUT)
+                led.value(1)
+                time.sleep(.1)
+                led.value(0)
                 time.sleep(1)
     print('Connected! Network config:', wlan.ifconfig())
 

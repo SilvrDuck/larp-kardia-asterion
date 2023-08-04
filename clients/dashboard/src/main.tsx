@@ -13,6 +13,7 @@ import { TravelProvider } from './lib/travelProvider.tsx'
 import { theme } from './theme.tsx'
 import { SonarProvider } from './lib/sonarProvider.tsx';
 import { Control } from './pages/Control.tsx';
+import { SonarConfigProvider } from './lib/sonarConfigProvider.tsx';
 
 
 
@@ -32,9 +33,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <WebsocketProvider>
       <TravelProvider>
         <SonarProvider>
-          <ChakraProvider theme={theme} >
-            <RouterProvider router={router} />
-          </ChakraProvider>
+          <SonarConfigProvider>
+            <ChakraProvider theme={theme} >
+              <RouterProvider router={router} />
+            </ChakraProvider>
+          </SonarConfigProvider>
         </SonarProvider>
       </TravelProvider>
     </WebsocketProvider>

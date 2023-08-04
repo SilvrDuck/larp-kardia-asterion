@@ -30,7 +30,7 @@ For testing purposes, it is easier to have a given pair of
 switch/led on the same side of the board.
 """
 
-SERVER_IP = "192.168.53.183"
+SERVER_IP = "192.168.1.10"
 
 CONTROL_PANEL = "pannel_a"
 
@@ -39,30 +39,30 @@ LED_TOPIC = b"led"
 
 global_config = {
     "pannel_a": [
-        {"code": "WFW0", "switch": 13, "led": 14},
-        {"code": "WFS0", "switch": 27, "led": 26},
-        {"code": "WFR0", "switch": 25, "led": 33},
-        {"code": "WNR0", "switch": 21, "led": 19},
-        {"code": "WNN0", "switch": 4, "led": 15},
-        {"code": "ENR0", "switch": 23, "led": 22},
-        {"code": "ENN0", "switch": 18, "led": 5},
+        {"code": "WFW0G", "switch": 13, "led": 14},
+        {"code": "WFS0G", "switch": 27, "led": 26},
+        {"code": "WFR0G", "switch": 25, "led": 33},
+        {"code": "WNR0N", "switch": 21, "led": 19},
+        {"code": "WNN0N", "switch": 4, "led": 15},
+        {"code": "ENR0N", "switch": 23, "led": 22},
+        {"code": "ENN0N", "switch": 18, "led": 5},
     ],
     "pannel_b": [
-        {"code": "NFW0", "switch": 13, "led": 14},
-        {"code": "NFS0", "switch": 27, "led": 26},
-        {"code": "NFS1", "switch": 25, "led": 33},
-        {"code": "NNR0", "switch": 21, "led": 19},
-        {"code": "NNW0", "switch": 4, "led": 15},
-        {"code": "SNN0", "switch": 23, "led": 22},
-        {"code": "SNW0", "switch": 18, "led": 5},
+        {"code": "NFW0R", "switch": 13, "led": 14},
+        {"code": "NFS0R", "switch": 27, "led": 26},
+        {"code": "NFS1R", "switch": 25, "led": 33},
+        {"code": "NNR0N", "switch": 21, "led": 19},
+        {"code": "NNW0N", "switch": 4, "led": 15},
+        {"code": "SNN0N", "switch": 23, "led": 22},
+        {"code": "SNW0N", "switch": 18, "led": 5},
     ],
     "pannel_c": [
-        {"code": "SFW0", "switch": 13, "led": 14},
-        {"code": "SFS0", "switch": 27, "led": 26},
-        {"code": "SFR0", "switch": 25, "led": 33},
-        {"code": "EFR0", "switch": 4, "led": 15},
-        {"code": "EFS0", "switch": 23, "led": 22},
-        {"code": "EFW0", "switch": 18, "led": 5},
+        {"code": "SFW0B", "switch": 13, "led": 14},
+        {"code": "SFS0B", "switch": 27, "led": 26},
+        {"code": "SFR0B", "switch": 25, "led": 33},
+        {"code": "EFR0R", "switch": 4, "led": 15},
+        {"code": "EFS0B", "switch": 23, "led": 22},
+        {"code": "EFW0G", "switch": 18, "led": 5},
 
     ],
 }

@@ -21,7 +21,6 @@ class Topic(str, Enum):
     PROPOSE_STATUS = "propose_status"
     BROADCAST_STATUS = "broadcast_status"
     SOUND = "sound"
-    LIGHT = "light"
 
 
 class MessageType(str, Enum):
@@ -34,8 +33,12 @@ class MessageType(str, Enum):
     END_BATTLE = "end_battle"
     LAUNCH_TORPEDO = "launch_torpedo"
     LAUNCH_MINE = "launch_mine"
+    DETONATE_MINE = "detonate_mine"
     MOVE = "move"
     REPAIR = "repair"
+    DAMAGE = "damage"
+    DIRECT_DAMAGE = "direct_damage"
+    SURFACE = "surface"
 
 
 class ServiceType(str, Enum):

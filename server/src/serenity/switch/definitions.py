@@ -18,6 +18,12 @@ class Function(str, Enum):
     SILENCE = "S"
     NUCLEAR = "N"
 
+class Group(str, Enum):
+    RED = "R"
+    BLUE = "B"
+    GREEN = "G"
+    NEUTRAL = "N"
+
 
 class Switch(BaseModel):
     uid: str
@@ -25,6 +31,7 @@ class Switch(BaseModel):
     fixable: bool
     function: Function
     number: int
+    group: Group
 
     class Config:
         frozen = True
@@ -49,22 +56,24 @@ class Switch(BaseModel):
     def from_message(cls, message: str) -> Switch:
         cls.validate_message(message)
         return cls(
-            uid=message[:4],
+            uid=message[:5],
             heading=cls._from_direction_code(message[0]),
             fixable=message[1] == "F",
             function=Function(message[2]),
             number=int(message[3]),
+            group=Group(message[4]),
         )
 
     @staticmethod
     def validate_message(message: str) -> None:
         if any(
             (
-                len(message) != 4,
+                len(message) != 5,
                 message[0] not in "WESN",
                 message[1] not in "NF",
                 message[2] not in "WRSN",
                 message[3] not in "01",
+                message[4] not in "RGBN",
             )
         ):
             raise ValueError(f"Invalid switch UID: {message}")

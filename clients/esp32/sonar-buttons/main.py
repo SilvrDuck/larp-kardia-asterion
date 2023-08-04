@@ -28,13 +28,13 @@ print("Connected!")
 
 def decode_msg(msg):
     """Message format: {code}{value},
-    where code is a 4 character string and value is 0 or 1.
+    where code is a 5 character string and value is 0 or 1.
 
     See config.py for more details.
     """
     message = msg.decode("utf-8")
     print("Decoding message: {}".format(message))
-    return message[:4], int(message[4:])
+    return message[:5], int(message[5:])
 
 
 def receive_callback(topic, msg):

@@ -1,22 +1,35 @@
-import { VStack } from '@chakra-ui/react';
+import { HStack, Spacer, VStack } from '@chakra-ui/react';
 import { Outlet } from 'react-router-dom';
 import { PlanetCounter } from './components/planetCounter';
-import { PlanetGraph } from './components/planetGraph';
+
+import { useContext } from 'react';
+import { SonarContext } from './lib/sonarProvider';
+import { BattleInfo } from './components/battleInfo';
+import { TravelInfo } from './components/travelInfo';
+import { ShipStatus } from './components/shipStatus';
 
 
 
 
 function App() {
 
-  return (
+  const { in_battle } = useContext(SonarContext)
+
+  const ui = in_battle ? <BattleInfo /> : <TravelInfo />
+
+    return (
     <VStack h={"100vh"} w={"100vw"} align="stretch">
       <VStack align="stretch" pt="1.5em" pl="1.5em" pr="1.5em" >
-        <h1>Serenity</h1>
+        <HStack>
+          <h1>Serenity</h1>
+          <Spacer />
+          {ui}
+        </HStack>
         <PlanetCounter />
       </VStack>
       <Outlet />
-    </VStack>
-  )
+    </VStack >
+    )
 }
 
-export default App
+    export default App

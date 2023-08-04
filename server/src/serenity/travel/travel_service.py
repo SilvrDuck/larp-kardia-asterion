@@ -56,7 +56,7 @@ class TravelService(Service[TravelState, TravelConfig]):
 
         self._set_visited(self._current_step_id)
 
-    def _to_state(self) -> TravelState:
+    def to_state(self) -> TravelState:
         return TravelState(
             ship_state=self._ship_state,
             planetary_config=self._planet_graph.to_planetary_config(),
@@ -69,7 +69,7 @@ class TravelService(Service[TravelState, TravelConfig]):
     def _update_config(self, config: TravelConfig) -> None:
         self._travel_tick_seconds = config.travel_tick_seconds
 
-    def _to_config(self) -> TravelConfig:
+    def to_config(self) -> TravelConfig:
         return TravelConfig(travel_tick_seconds=self._travel_tick_seconds)
 
     async def _start(self) -> None:

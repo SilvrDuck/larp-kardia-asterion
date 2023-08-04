@@ -55,8 +55,7 @@ class RedisClient:
                 try:
                     message = await pubsub.get_message(ignore_subscribe_messages=True)
 
-                    if message is not None:
-                        logging.debug("REDIS: Subscription iterator tick, %s, %s", topic, str(message)[:200])
+                    if message is not None:                        
                         message = RedisMessage(**orjson.loads(message["data"]))  # pylint: disable=maybe-no-member
 
                         match message:

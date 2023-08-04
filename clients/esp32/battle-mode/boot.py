@@ -2,8 +2,8 @@ import network
 import time
 
 # Replace the following with your WIFI Credentials
-SSID = "Turbolos"
-SSI_PASSWORD = "slipknot666"
+SSID = "saintsorny"
+SSI_PASSWORD = "saintsorny"
 
 wlan = network.WLAN(network.STA_IF)
 
